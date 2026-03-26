@@ -27,11 +27,30 @@ const styles = StyleSheet.create({
   dateLabel: { fontSize: 8, color: '#9A918A' },
   dateValue: { fontSize: 10, fontFamily: 'Helvetica-Bold' },
 
-  parties: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20, gap: 20 },
-  partyBlock: { flex: 1 },
-  partyLabel: { fontSize: 8, color: '#9A918A', marginBottom: 4, textTransform: 'uppercase' as const },
+  /* ── Two-column parties (Zoho-style) ── */
+  parties: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+    gap: 20,
+  },
+  partyCol: { flex: 1 },
+  partyLabel: {
+    fontSize: 8,
+    color: '#9A918A',
+    marginBottom: 4,
+    textTransform: 'uppercase' as const,
+  },
   partyName: { fontSize: 11, fontFamily: 'Helvetica-Bold', marginBottom: 2 },
   partyDetail: { fontSize: 9, color: '#6B6560', lineHeight: 1.5 },
+
+  /* Banking sub-section inside payable-to column */
+  bankingWrap: {
+    marginTop: 10,
+    paddingTop: 8,
+    borderTopWidth: 0.5,
+    borderTopColor: '#D6D0C8',
+  },
 
   table: { marginBottom: 20 },
   tableHead: {
@@ -87,9 +106,13 @@ interface Props {
     iban: string;
     swift: string;
   };
+  client?: {
+    bankName?: string;
+    iban?: string;
+  };
 }
 
-export function InvoicePDF({ invoice, items, settings }: Props) {
+export function InvoicePDF({ invoice, items, settings, client }: Props) {
   const sym = CURRENCY_SYMBOLS[invoice.currency] ?? invoice.currency;
 
   return (
@@ -109,32 +132,37 @@ export function InvoicePDF({ invoice, items, settings }: Props) {
           </View>
         </View>
 
-        {/* Parties */}
+        {/* ── Two-column: Invoice For | Payable To + Banking ── */}
         <View style={styles.parties}>
-          <View style={styles.partyBlock}>
+          {/* LEFT: Invoice For (client) */}
+          <View style={styles.partyCol}>
             <Text style={styles.partyLabel}>Invoice for</Text>
             <Text style={styles.partyName}>{invoice.clientName}</Text>
             {invoice.project && <Text style={styles.partyDetail}>Project: {invoice.project}</Text>}
+            {client?.bankName && <Text style={styles.partyDetail}>Bank: {client.bankName}</Text>}
+            {client?.iban && <Text style={styles.partyDetail}>Account: {client.iban}</Text>}
           </View>
-          <View style={styles.partyBlock}>
+
+          {/* RIGHT: Payable To (seller) + Banking Details */}
+          <View style={styles.partyCol}>
             <Text style={styles.partyLabel}>Payable to</Text>
             <Text style={styles.partyName}>{settings?.fullName ?? ''}</Text>
             {settings?.tin && <Text style={styles.partyDetail}>TIN: {settings.tin}</Text>}
             {settings?.address && <Text style={styles.partyDetail}>{settings.address}</Text>}
             {settings?.email && <Text style={styles.partyDetail}>{settings.email}</Text>}
+
+            {/* Banking details grouped with seller */}
+            {settings?.bankName && (
+              <View style={styles.bankingWrap}>
+                <Text style={styles.partyLabel}>Banking Details</Text>
+                <Text style={styles.partyDetail}>Beneficiary: {settings.beneficiary}</Text>
+                <Text style={styles.partyDetail}>Account: {settings.iban}</Text>
+                <Text style={styles.partyDetail}>Bank: {settings.bankName}</Text>
+                <Text style={styles.partyDetail}>SWIFT: {settings.swift}</Text>
+              </View>
+            )}
           </View>
         </View>
-
-        {/* Banking */}
-        {settings?.bankName && (
-          <View style={{ marginBottom: 16 }}>
-            <Text style={styles.partyLabel}>Banking Details</Text>
-            <Text style={styles.partyDetail}>Beneficiary: {settings.beneficiary}</Text>
-            <Text style={styles.partyDetail}>Account: {settings.iban}</Text>
-            <Text style={styles.partyDetail}>Bank: {settings.bankName}</Text>
-            <Text style={styles.partyDetail}>SWIFT: {settings.swift}</Text>
-          </View>
-        )}
 
         {/* Items table */}
         <View style={styles.table}>

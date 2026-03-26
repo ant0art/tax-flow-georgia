@@ -5,11 +5,14 @@ import type { SettingsFormData } from '@/entities/settings/schemas';
 import { SETTINGS_DEFAULTS } from '@/entities/settings/schemas';
 import { useToastStore } from '@/shared/ui/Toast.store';
 
-const SETTINGS_FIELDS: (keyof SettingsFormData)[] = [
+const SETTINGS_FIELDS: (keyof Omit<SettingsFormData, 'businessEntities'>)[] = [
   'fullName', 'tin', 'address', 'email', 'phone',
   'bankName', 'beneficiary', 'iban', 'swift',
   'defaultCurrency', 'taxRate', 'vatText', 'invoicePrefix',
 ];
+
+// businessEntities stored as JSON in cell 14 (index 13)
+const ENTITIES_COL_INDEX = SETTINGS_FIELDS.length;
 
 function getClient() {
   return new SheetsClient(() => useAuthStore.getState().accessToken);
@@ -31,6 +34,15 @@ export function useSettings() {
       });
       // Parse numeric
       result.taxRate = parseFloat(result.taxRate as string) || 0.01;
+
+      // Parse business entities JSON
+      const entitiesRaw = values[ENTITIES_COL_INDEX];
+      try {
+        result.businessEntities = entitiesRaw ? JSON.parse(entitiesRaw) : [];
+      } catch {
+        result.businessEntities = [];
+      }
+
       return result as SettingsFormData;
     },
     staleTime: 30 * 60 * 1000, // 30 min
@@ -39,6 +51,8 @@ export function useSettings() {
   const mutation = useMutation({
     mutationFn: async (data: SettingsFormData) => {
       const row = SETTINGS_FIELDS.map((f) => String(data[f] ?? ''));
+      // Append business entities as JSON
+      row.push(JSON.stringify(data.businessEntities ?? []));
       await getClient().updateRow('settings', 2, row);
     },
     onSuccess: () => {

@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { clientSchema, type ClientFormData, CLIENT_DEFAULTS } from '@/entities/client/schemas';
 import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
+import { useT } from '@/shared/i18n/useT';
 import './ClientForm.css';
 
 interface ClientFormProps {
@@ -13,6 +14,7 @@ interface ClientFormProps {
 
 export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
   const isEdit = !!initial;
+  const t = useT();
 
   const {
     register,
@@ -25,41 +27,45 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
 
   return (
     <form className="client-form" onSubmit={handleSubmit(onSubmit)}>
-      <h3 className="client-form__title">{isEdit ? '✏️ Редактировать' : '➕ Новый клиент'}</h3>
+      <h3 className="client-form__title">
+        {isEdit ? `✏️ ${t['client_edit'] ?? 'Edit client'}` : `➕ ${t['client_new'] ?? 'New client'}`}
+      </h3>
 
       <div className="client-form__grid">
         <Input
-          label="Название / Имя"
+          label={t['client_name'] ?? 'Name'}
           error={errors.name?.message}
           {...register('name')}
         />
         <Input
-          label="Email"
+          label={t['client_email'] ?? 'Email'}
           type="email"
           error={errors.email?.message}
           {...register('email')}
         />
         <Input
-          label="Адрес"
+          label={t['client_address'] ?? 'Address'}
           {...register('address')}
         />
         <Input
-          label="TIN"
-          hint="Необязательно"
+          label={t['client_tin'] ?? 'TIN'}
+          hint={t['optional'] ?? 'Optional'}
           {...register('tin')}
         />
         <Input
-          label="Банк"
+          label={t['client_bank'] ?? 'Bank'}
           {...register('bankName')}
         />
         <Input
-          label="IBAN"
+          label={t['client_iban'] ?? 'IBAN'}
           error={errors.iban?.message}
           mono
           {...register('iban')}
         />
         <div className="field">
-          <label className="field__label" htmlFor="client-currency">Валюта по умолчанию</label>
+          <label className="field__label" htmlFor="client-currency">
+            {t['client_default_currency'] ?? 'Default currency'}
+          </label>
           <select className="field__select" id="client-currency" {...register('defaultCurrency')}>
             <option value="USD">USD ($)</option>
             <option value="EUR">EUR (€)</option>
@@ -68,18 +74,18 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
           </select>
         </div>
         <Input
-          label="Проект по умолчанию"
-          hint="Для автозаполнения инвойсов"
+          label={t['client_default_project'] ?? 'Default project'}
+          hint={t['client_default_project_hint'] ?? 'For invoice autofill'}
           {...register('defaultProject')}
         />
       </div>
 
       <div className="client-form__actions">
         <Button type="submit" loading={isSubmitting}>
-          {isEdit ? 'Сохранить' : 'Добавить'}
+          {isEdit ? (t['save'] ?? 'Save') : (t['add'] ?? 'Add')}
         </Button>
         <Button type="button" variant="ghost" onClick={onCancel}>
-          Отмена
+          {t['cancel'] ?? 'Cancel'}
         </Button>
       </div>
     </form>

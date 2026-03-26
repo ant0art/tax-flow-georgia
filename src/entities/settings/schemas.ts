@@ -1,5 +1,21 @@
 import { z } from 'zod';
 
+export const businessEntitySchema = z.object({
+  id: z.string().uuid(),
+  label: z.string().min(1, 'Укажите название'),
+  fullName: z.string().min(3, 'Имя ≥ 3 символа'),
+  tin: z.string(),
+  address: z.string(),
+  email: z.string(),
+  phone: z.string().optional().or(z.literal('')),
+  bankName: z.string(),
+  beneficiary: z.string(),
+  iban: z.string(),
+  swift: z.string(),
+});
+
+export type BusinessEntity = z.infer<typeof businessEntitySchema>;
+
 export const settingsSchema = z.object({
   fullName: z.string().min(3, 'Имя должно содержать минимум 3 символа'),
   tin: z.string().regex(/^\d{9}$|^\d{11}$/, 'TIN должен содержать 9 или 11 цифр'),
@@ -20,6 +36,7 @@ export const settingsSchema = z.object({
   taxRate: z.number().min(0, 'Ставка ≥ 0').max(1, 'Ставка ≤ 1 (100%)'),
   vatText: z.string(),
   invoicePrefix: z.string(),
+  businessEntities: z.array(businessEntitySchema),
 });
 
 export type SettingsFormData = z.infer<typeof settingsSchema>;
@@ -38,4 +55,5 @@ export const SETTINGS_DEFAULTS: SettingsFormData = {
   taxRate: 0.01,
   vatText: 'Zero rated',
   invoicePrefix: '',
+  businessEntities: [],
 };

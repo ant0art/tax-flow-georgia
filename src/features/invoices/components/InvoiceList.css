@@ -86,8 +86,10 @@
 
 .invoice-card__status {
   font: var(--text-caption);
+  font-weight: 600;
   padding: 2px var(--space-2);
   border-radius: var(--radius-sm);
+  border: 1px solid currentColor;
 }
 
 .invoice-card__status--paid   { background: var(--color-success-bg); color: var(--color-success); }

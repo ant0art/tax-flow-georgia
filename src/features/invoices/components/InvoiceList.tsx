@@ -84,7 +84,7 @@ export function InvoiceList() {
           <Icon name="file-text" size={22} />
           {t['invoices_title']} ({invoices.length})
         </h1>
-        <Button onClick={() => setShowForm(true)}>{t['invoice_create']}</Button>
+        <Button onClick={() => setShowForm(true)} title={t['invoice_new']}>{t['invoice_create']}</Button>
       </div>
 
       {/* Filters */}

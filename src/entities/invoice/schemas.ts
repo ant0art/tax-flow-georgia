@@ -27,6 +27,7 @@ export const invoiceSchema = z.object({
   status: z.enum(['draft', 'sent', 'paid', 'overdue']),
   linkedTransactionId: z.string(),
   notes: z.string(),
+  businessEntityId: z.string(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -37,7 +38,7 @@ export const INVOICE_FIELDS: (keyof InvoiceFormData)[] = [
   'id', 'number', 'clientId', 'clientName', 'date', 'dueDate',
   'currency', 'subtotal', 'vatText', 'vatAmount', 'total',
   'project', 'status', 'linkedTransactionId', 'notes',
-  'createdAt', 'updatedAt',
+  'businessEntityId', 'createdAt', 'updatedAt',
 ];
 
 export const ITEM_FIELDS: (keyof InvoiceItem)[] = [

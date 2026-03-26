@@ -18,13 +18,15 @@
   color: var(--color-text);
   font: var(--text-body);
   transition: border-color var(--duration-fast) var(--easing-default),
-              box-shadow var(--duration-fast) var(--easing-default);
+              box-shadow    var(--duration-fast) var(--easing-default),
+              background    var(--duration-fast) var(--easing-default);
   outline: none;
 }
 
 .field__input:focus {
   border-color: var(--color-border-focus);
   box-shadow: 0 0 0 3px rgba(75, 96, 127, 0.15);
+  background: var(--color-surface);
 }
 
 .field__input::placeholder {

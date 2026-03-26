@@ -38,10 +38,14 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  transition: box-shadow var(--duration-fast);
+  box-shadow: var(--shadow-1);
+  transition: box-shadow var(--duration-fast), transform var(--duration-fast);
 }
 
-.dash-stat:hover { box-shadow: var(--shadow-1); }
+.dash-stat:hover {
+  box-shadow: var(--shadow-2);
+  transform: translateY(-1px);
+}
 
 .dash-stat__label {
   font-size: 11px;

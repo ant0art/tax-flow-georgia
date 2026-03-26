@@ -33,7 +33,8 @@ export type IconName =
   | 'loader'
   | 'log-out'
   | 'chevron-right'
-  | 'chevron-left';
+  | 'chevron-left'
+  | 'chevron-down';
 
 const PATHS: Record<IconName, ReactElement> = {
   'chart-bar': (
@@ -226,6 +227,9 @@ const PATHS: Record<IconName, ReactElement> = {
   ),
   'chevron-left': (
     <polyline points="15 18 9 12 15 6" />
+  ),
+  'chevron-down': (
+    <polyline points="6 9 12 15 18 9" />
   ),
 };
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { invoiceSchema, generateInvoiceNumber } from '@/entities/invoice/schemas';
@@ -10,6 +10,8 @@ import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
 import { useT } from '@/shared/i18n/useT';
 import { Icon } from '@/shared/ui/Icon';
+import { ClientCombobox } from '@/features/clients/components/ClientCombobox';
+import { DatePicker } from '@/shared/ui/DatePicker';
 import './InvoiceForm.css';
 
 interface InvoiceFormProps {
@@ -59,11 +61,29 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
       status: 'draft',
       linkedTransactionId: '',
       notes: '',
+      businessEntityId: '',
       createdAt: '',
       updatedAt: '',
     },
   });
 
+  // ── Due date auto-calc: date + 10 days ──
+  const dueDateManualRef = useRef(false);
+  const watchedDate = watch('date');
+
+  useEffect(() => {
+    if (dueDateManualRef.current || !watchedDate) return;
+    try {
+      const d = new Date(watchedDate);
+      if (isNaN(d.getTime())) return;
+      d.setDate(d.getDate() + 10);
+      setValue('dueDate', d.toISOString().split('T')[0]);
+    } catch {
+      /* invalid date — skip */
+    }
+  }, [watchedDate, setValue]);
+
+  // ── Invoice items (services) ──
   const [items, setItems] = useState<InvoiceItem[]>(
     initial?.items?.length
       ? initial.items
@@ -76,6 +96,17 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
           total: 0,
         }]
   );
+
+  // ── Controlled amount inputs as strings for clean UX ──
+  const [itemDisplayValues, setItemDisplayValues] = useState<Record<string, string>>(() => {
+    const map: Record<string, string> = {};
+    const initItems = initial?.items?.length ? initial.items : [{ id: '', quantity: 1, unitPrice: 0 }];
+    initItems.forEach((item, idx) => {
+      map[`qty-${idx}`] = String(item.quantity);
+      map[`price-${idx}`] = item.unitPrice === 0 ? '' : String(item.unitPrice);
+    });
+    return map;
+  });
 
   const updateItem = (index: number, field: keyof InvoiceItem, value: string | number) => {
     setItems((prev) => {
@@ -92,11 +123,47 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
     });
   };
 
+  const handleAmountChange = (
+    index: number,
+    field: 'quantity' | 'unitPrice',
+    raw: string
+  ) => {
+    const displayKey = field === 'quantity' ? `qty-${index}` : `price-${index}`;
+    // Allow free text entry (digits, dots, commas)
+    const cleaned = raw.replace(/[^0-9.,]/g, '').replace(',', '.');
+    setItemDisplayValues((prev) => ({ ...prev, [displayKey]: cleaned }));
+
+    const num = parseFloat(cleaned);
+    if (!isNaN(num)) {
+      updateItem(index, field, num);
+    }
+  };
+
+  const handleAmountBlur = (index: number, field: 'quantity' | 'unitPrice') => {
+    const displayKey = field === 'quantity' ? `qty-${index}` : `price-${index}`;
+    setItemDisplayValues((prev) => {
+      const raw = prev[displayKey] ?? '0';
+      const num = parseFloat(raw);
+      const formatted = isNaN(num) ? '0' : String(num);
+      return { ...prev, [displayKey]: formatted };
+    });
+  };
+
+  const handleAmountFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.target.select();
+  };
+
   const addItem = () => {
+    const idx = items.length;
     setItems((prev) => [
       ...prev,
       { id: crypto.randomUUID(), invoiceId, description: '', quantity: 1, unitPrice: 0, total: 0 },
     ]);
+    setItemDisplayValues((prev) => ({
+      ...prev,
+      [`qty-${idx}`]: '1',
+      [`price-${idx}`]: '',
+    }));
   };
 
   const removeItem = (index: number) => {
@@ -108,10 +175,21 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
       setValue('total', subtotal);
       return next;
     });
+    // Rebuild display values for remaining items
+    setItemDisplayValues((prev) => {
+      const next: Record<string, string> = {};
+      items.forEach((item, i) => {
+        if (i === index) return;
+        const newIdx = i > index ? i - 1 : i;
+        next[`qty-${newIdx}`] = prev[`qty-${i}`] ?? String(item.quantity);
+        next[`price-${newIdx}`] = prev[`price-${i}`] ?? String(item.unitPrice);
+      });
+      return next;
+    });
   };
 
-  const handleClientChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const clientId = e.target.value;
+  // ── Client selection via combobox ──
+  const handleClientSelect = (clientId: string) => {
     const client = clients.find((c) => c.id === clientId);
     setValue('clientId', clientId);
     setValue('clientName', client?.name ?? '');
@@ -133,10 +211,14 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
   const total = watch('total');
   const currency = watch('currency');
 
+  // ── Business entities (ИП profiles) ──
+  const businessEntities = settings?.businessEntities ?? [];
+  const showEntitySelector = businessEntities.length > 0;
+
   return (
     <form className="invoice-form" onSubmit={handleSubmit(onSubmit)}>
       <div className="invoice-form__header">
-        <h2>
+        <h2 className="section-title">
           <Icon name={isEdit ? 'edit' : 'file-text'} size={18} />
           {isEdit ? t['invoice_edit'] : t['invoice_new']}
         </h2>
@@ -149,38 +231,30 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
           mono
           {...register('number')}
         />
-        <Input
+        <DatePicker
           label={t['invoice_date']}
-          type="date"
+          value={watch('date')}
+          onChange={(v: string) => setValue('date', v)}
           error={errors.date?.message}
-          {...register('date')}
         />
-        <Input
+        <DatePicker
           label={t['invoice_due_date']}
-          type="date"
+          value={watch('dueDate')}
+          onChange={(v: string) => {
+            dueDateManualRef.current = true;
+            setValue('dueDate', v);
+          }}
           error={errors.dueDate?.message}
-          {...register('dueDate')}
         />
       </div>
 
       <div className="invoice-form__client">
-        <div className="field">
-          <label className="field__label" htmlFor="inv-client">{t['invoice_client']}</label>
-          <select
-            className="field__select"
-            id="inv-client"
-            value={watch('clientId')}
-            onChange={handleClientChange}
-          >
-            <option value="">{t['invoice_client_select']}</option>
-            {clients.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-          {errors.clientName && (
-            <span className="field__error">{errors.clientName.message}</span>
-          )}
-        </div>
+        <ClientCombobox
+          clients={clients}
+          value={watch('clientId')}
+          onChange={handleClientSelect}
+          error={errors.clientName?.message}
+        />
 
         <div className="field">
           <label className="field__label" htmlFor="inv-currency">{t['invoice_currency']}</label>
@@ -194,6 +268,29 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
 
         <Input label={t['invoice_project']} {...register('project')} />
       </div>
+
+      {/* ── Business Entity selector ── */}
+      {showEntitySelector && (
+        <div className="invoice-form__entity">
+          <div className="field">
+            <label className="field__label" htmlFor="inv-entity">
+              {t['invoice_entity'] ?? 'Business Entity'}
+            </label>
+            <select
+              className="field__select"
+              id="inv-entity"
+              {...register('businessEntityId')}
+            >
+              <option value="">{t['invoice_entity_default'] ?? '— Default (Settings) —'}</option>
+              {businessEntities.map((ent) => (
+                <option key={ent.id} value={ent.id}>
+                  {ent.label || ent.fullName}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
 
       <section className="invoice-form__items">
         <h3>{t['invoice_services']}</h3>
@@ -215,19 +312,21 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
               />
               <input
                 className="field__input amount"
-                type="number"
-                min="0.01"
-                step="0.01"
-                value={item.quantity}
-                onChange={(e) => updateItem(idx, 'quantity', parseFloat(e.target.value) || 0)}
+                inputMode="decimal"
+                placeholder="1"
+                value={itemDisplayValues[`qty-${idx}`] ?? String(item.quantity)}
+                onChange={(e) => handleAmountChange(idx, 'quantity', e.target.value)}
+                onBlur={() => handleAmountBlur(idx, 'quantity')}
+                onFocus={handleAmountFocus}
               />
               <input
                 className="field__input amount"
-                type="number"
-                min="0"
-                step="0.01"
-                value={item.unitPrice}
-                onChange={(e) => updateItem(idx, 'unitPrice', parseFloat(e.target.value) || 0)}
+                inputMode="decimal"
+                placeholder="0.00"
+                value={itemDisplayValues[`price-${idx}`] ?? (item.unitPrice === 0 ? '' : String(item.unitPrice))}
+                onChange={(e) => handleAmountChange(idx, 'unitPrice', e.target.value)}
+                onBlur={() => handleAmountBlur(idx, 'unitPrice')}
+                onFocus={handleAmountFocus}
               />
               <span className="items-table__total amount">
                 {item.total.toFixed(2)}
@@ -253,9 +352,26 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
           <span>{t['invoice_subtotal']}</span>
           <span className="amount">{currency} {subtotal.toFixed(2)}</span>
         </div>
-        <div className="invoice-form__total-row">
-          <span>{watch('vatText')}</span>
-          <span className="amount">{currency} 0.00</span>
+        <div className="invoice-form__total-row invoice-form__total-row--editable">
+          <div className="invoice-form__vat-label">
+            <span>VAT:</span>
+            <input
+              className="field__input field__input--inline"
+              placeholder={t['invoice_vat_hint'] ?? 'Zero rated'}
+              {...register('vatText')}
+            />
+          </div>
+          <input
+            className="field__input field__input--inline amount"
+            inputMode="decimal"
+            value={watch('vatAmount') === 0 ? '0.00' : String(watch('vatAmount'))}
+            onChange={(e) => {
+              const v = parseFloat(e.target.value.replace(/[^0-9.-]/g, ''));
+              const amt = isNaN(v) ? 0 : v;
+              setValue('vatAmount', amt);
+              setValue('total', subtotal + amt);
+            }}
+          />
         </div>
         <div className="invoice-form__total-row invoice-form__total-row--grand">
           <strong>{t['invoice_grand_total']}</strong>
