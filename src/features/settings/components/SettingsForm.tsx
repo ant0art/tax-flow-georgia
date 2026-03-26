@@ -51,7 +51,7 @@ export function SettingsForm() {
 
   return (
     <form className="settings-form" onSubmit={handleSubmit(onSubmit)}>
-      <section className="settings-section">
+      <section id="section-personal" className="settings-section">
         <h2 className="settings-section__title section-title">
           <Icon name="user" size={14} />
           {t['settings_personal']}
@@ -98,7 +98,7 @@ export function SettingsForm() {
         </div>
       </section>
 
-      <section className="settings-section">
+      <section id="section-bank" className="settings-section">
         <h2 className="settings-section__title section-title">
           <Icon name="bank" size={14} />
           {t['settings_bank']}
@@ -140,7 +140,7 @@ export function SettingsForm() {
         </div>
       </section>
 
-      <section className="settings-section">
+      <section id="section-defaults" className="settings-section">
         <h2 className="settings-section__title section-title">
           <Icon name="sliders" size={14} />
           {t['settings_defaults']}
@@ -187,7 +187,7 @@ export function SettingsForm() {
       </section>
 
       {/* ── Business Entities (ИП profiles) ── */}
-      <section className="settings-section">
+      <section id="section-entities" className="settings-section">
         <h2 className="settings-section__title section-title">
           <Icon name="address-book" size={14} />
           {t['settings_entities']}

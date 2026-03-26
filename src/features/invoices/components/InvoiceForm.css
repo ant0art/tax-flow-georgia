@@ -1,11 +1,12 @@
 .invoice-form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--space-4);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: var(--space-5);
+  padding: var(--space-4) var(--space-5);
+  box-shadow: var(--shadow-1);
 }
 
 .invoice-form__header h2 {
@@ -16,7 +17,7 @@
 .invoice-form__client {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--space-4);
+  gap: var(--space-3);
 }
 
 @media (min-width: 640px) {
@@ -25,8 +26,17 @@
 }
 
 /* Items table */
+.invoice-form__items {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-4);
+}
+
 .invoice-form__items h3 {
-  font: var(--text-h3);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
   margin-bottom: var(--space-3);
 }
 

@@ -54,17 +54,7 @@
 .settings-form__actions {
   display: flex;
   gap: var(--space-3);
-  position: sticky;
-  bottom: 60px;
-  background: var(--color-bg);
-  padding: var(--space-3) 0;
-  z-index: 10;
-}
-
-@media (min-width: 1024px) {
-  .settings-form__actions {
-    bottom: 0;
-  }
+  padding-top: var(--space-2);
 }
 
 .settings-skeleton {
