@@ -137,9 +137,17 @@ export function ClientCombobox({ clients, value, onChange, error }: ClientCombob
       </label>
       <div
         className={`combobox__trigger ${open ? 'combobox__trigger--open' : ''}`}
-        onClick={() => {
-          setOpen(true);
-          requestAnimationFrame(() => inputRef.current?.focus());
+        onClick={(e) => {
+          // Only toggle if we clicked directly on the trigger wrapper (not the search input inside)
+          if (e.target === e.currentTarget) {
+            if (open) {
+              setOpen(false);
+              setSearch('');
+            } else {
+              setOpen(true);
+              requestAnimationFrame(() => inputRef.current?.focus());
+            }
+          }
         }}
       >
         {open ? (
@@ -153,11 +161,32 @@ export function ClientCombobox({ clients, value, onChange, error }: ClientCombob
             autoFocus
           />
         ) : (
-          <span className={`combobox__display ${!selectedClient ? 'combobox__display--placeholder' : ''}`}>
+          <span
+            className={`combobox__display ${!selectedClient ? 'combobox__display--placeholder' : ''}`}
+            onClick={() => {
+              setOpen(true);
+              requestAnimationFrame(() => inputRef.current?.focus());
+            }}
+          >
             {selectedClient ? selectedClient.name : (t['invoice_client_select'])}
           </span>
         )}
-        <Icon name="chevron-down" size={14} />
+        {/* Chevron toggles open/closed — mousedown prevents blur-then-click race */}
+        <span
+          className="combobox__chevron"
+          onMouseDown={(e) => {
+            e.preventDefault(); // prevent input blur triggering close-on-outside-click first
+            if (open) {
+              setOpen(false);
+              setSearch('');
+            } else {
+              setOpen(true);
+              requestAnimationFrame(() => inputRef.current?.focus());
+            }
+          }}
+        >
+          <Icon name="chevron-down" size={14} />
+        </span>
       </div>
 
       {open && (

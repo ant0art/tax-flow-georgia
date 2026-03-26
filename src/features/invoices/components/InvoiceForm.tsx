@@ -217,83 +217,90 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
 
   return (
     <form className="invoice-form" onSubmit={handleSubmit(onSubmit)}>
-      <div className="invoice-form__header">
-        <h2 className="section-title">
-          <Icon name={isEdit ? 'edit' : 'file-text'} size={18} />
+
+      {/* ── Section 1: Invoice details ── */}
+      <section className="invoice-form__section">
+        <h2 className="invoice-form__section-title">
+          <Icon name={isEdit ? 'edit' : 'file-text'} size={13} />
           {isEdit ? t['invoice_edit'] : t['invoice_new']}
         </h2>
-      </div>
 
-      <div className="invoice-form__meta">
-        <Input
-          label={t['invoice_number']}
-          error={errors.number?.message}
-          mono
-          {...register('number')}
-        />
-        <DatePicker
-          label={t['invoice_date']}
-          value={watch('date')}
-          onChange={(v: string) => setValue('date', v)}
-          error={errors.date?.message}
-        />
-        <DatePicker
-          label={t['invoice_due_date']}
-          value={watch('dueDate')}
-          onChange={(v: string) => {
-            dueDateManualRef.current = true;
-            setValue('dueDate', v);
-          }}
-          error={errors.dueDate?.message}
-        />
-      </div>
-
-      <div className="invoice-form__client">
-        <ClientCombobox
-          clients={clients}
-          value={watch('clientId')}
-          onChange={handleClientSelect}
-          error={errors.clientName?.message}
-        />
-
-        <div className="field">
-          <label className="field__label" htmlFor="inv-currency">{t['invoice_currency']}</label>
-          <select className="field__select" id="inv-currency" {...register('currency')}>
-            <option value="USD">USD ($)</option>
-            <option value="EUR">EUR (€)</option>
-            <option value="GBP">GBP (£)</option>
-            <option value="GEL">GEL (₾)</option>
-          </select>
-        </div>
-
-        <Input label={t['invoice_project']} {...register('project')} />
-      </div>
-
-      {/* ── Business Entity selector ── */}
-      {showEntitySelector && (
-        <div className="invoice-form__entity">
-          <div className="field">
-            <label className="field__label" htmlFor="inv-entity">
-              {t['invoice_entity'] ?? 'Business Entity'}
-            </label>
-            <select
-              className="field__select"
-              id="inv-entity"
-              {...register('businessEntityId')}
-            >
-              <option value="">{t['invoice_entity_default'] ?? '— Default (Settings) —'}</option>
-              {businessEntities.map((ent) => (
-                <option key={ent.id} value={ent.id}>
-                  {ent.label || ent.fullName}
-                </option>
-              ))}
-            </select>
+        {/* Row 1: Number · Date · Due date · Currency */}
+        <div className="invoice-form__field-group">
+          <div className="invoice-form__meta">
+            <Input
+              label={t['invoice_number']}
+              error={errors.number?.message}
+              mono
+              {...register('number')}
+            />
+            <DatePicker
+              label={t['invoice_date']}
+              value={watch('date')}
+              onChange={(v: string) => setValue('date', v)}
+              error={errors.date?.message}
+            />
+            <DatePicker
+              label={t['invoice_due_date']}
+              value={watch('dueDate')}
+              onChange={(v: string) => {
+                dueDateManualRef.current = true;
+                setValue('dueDate', v);
+              }}
+              error={errors.dueDate?.message}
+            />
+            <div className="field">
+              <label className="field__label" htmlFor="inv-currency">{t['invoice_currency']}</label>
+              <select className="field__select" id="inv-currency" {...register('currency')}>
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="GBP">GBP (£)</option>
+                <option value="GEL">GEL (₾)</option>
+              </select>
+            </div>
           </div>
         </div>
-      )}
 
-      <section className="invoice-form__items">
-        <h3>{t['invoice_services']}</h3>
+        {/* Row 2: Client · Project · Entity */}
+        <div className="invoice-form__field-group invoice-form__field-group--divider">
+          <div className="invoice-form__client">
+            <ClientCombobox
+              clients={clients}
+              value={watch('clientId')}
+              onChange={handleClientSelect}
+              error={errors.clientName?.message}
+            />
+            <Input label={t['invoice_project']} {...register('project')} />
+            {showEntitySelector && (
+              <div className="field">
+                <label className="field__label" htmlFor="inv-entity">
+                  {t['invoice_entity'] ?? 'Business Entity'}
+                </label>
+                <select
+                  className="field__select"
+                  id="inv-entity"
+                  {...register('businessEntityId')}
+                >
+                  <option value="">{t['invoice_entity_default'] ?? '— Default (Settings) —'}</option>
+                  {businessEntities.map((ent) => (
+                    <option key={ent.id} value={ent.id}>
+                      {ent.label || ent.fullName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Section 2: Services ── */}
+      <section className="invoice-form__section">
+        <h2 className="invoice-form__section-title">
+          <Icon name="file-text" size={13} />
+          {t['invoice_services']}
+        </h2>
+
         <div className="items-table">
           <div className="items-table__head">
             <span>{t['invoice_desc']}</span>
@@ -345,41 +352,46 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
         <Button type="button" variant="ghost" size="sm" onClick={addItem}>
           {t['invoice_add_row']}
         </Button>
-      </section>
 
-      <div className="invoice-form__totals">
-        <div className="invoice-form__total-row">
-          <span>{t['invoice_subtotal']}</span>
-          <span className="amount">{currency} {subtotal.toFixed(2)}</span>
-        </div>
-        <div className="invoice-form__total-row invoice-form__total-row--editable">
-          <div className="invoice-form__vat-label">
-            <span>VAT:</span>
-            <input
-              className="field__input field__input--inline"
-              placeholder={t['invoice_vat_hint'] ?? 'Zero rated'}
-              {...register('vatText')}
-            />
+        {/* Totals + Notes side by side on desktop */}
+        <div className="invoice-form__bottom">
+          <div className="invoice-form__notes">
+            <Input label={t['invoice_notes']} {...register('notes')} />
           </div>
-          <input
-            className="field__input field__input--inline amount"
-            inputMode="decimal"
-            value={watch('vatAmount') === 0 ? '0.00' : String(watch('vatAmount'))}
-            onChange={(e) => {
-              const v = parseFloat(e.target.value.replace(/[^0-9.-]/g, ''));
-              const amt = isNaN(v) ? 0 : v;
-              setValue('vatAmount', amt);
-              setValue('total', subtotal + amt);
-            }}
-          />
-        </div>
-        <div className="invoice-form__total-row invoice-form__total-row--grand">
-          <strong>{t['invoice_grand_total']}</strong>
-          <strong className="amount">{currency} {total.toFixed(2)}</strong>
-        </div>
-      </div>
 
-      <Input label={t['invoice_notes']} {...register('notes')} />
+          <div className="invoice-form__totals">
+            <div className="invoice-form__total-row">
+              <span>{t['invoice_subtotal']}</span>
+              <span className="amount">{currency} {subtotal.toFixed(2)}</span>
+            </div>
+            <div className="invoice-form__total-row invoice-form__total-row--editable">
+              <div className="invoice-form__vat-label">
+                <span>VAT:</span>
+                <input
+                  className="field__input field__input--inline"
+                  placeholder={t['invoice_vat_hint'] ?? 'Zero rated'}
+                  {...register('vatText')}
+                />
+              </div>
+              <input
+                className="field__input field__input--inline amount"
+                inputMode="decimal"
+                value={watch('vatAmount') === 0 ? '0.00' : String(watch('vatAmount'))}
+                onChange={(e) => {
+                  const v = parseFloat(e.target.value.replace(/[^0-9.-]/g, ''));
+                  const amt = isNaN(v) ? 0 : v;
+                  setValue('vatAmount', amt);
+                  setValue('total', subtotal + amt);
+                }}
+              />
+            </div>
+            <div className="invoice-form__total-row invoice-form__total-row--grand">
+              <strong>{t['invoice_grand_total']}</strong>
+              <strong className="amount">{currency} {total.toFixed(2)}</strong>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <div className="invoice-form__actions">
         <Button type="submit" loading={isSaving}>

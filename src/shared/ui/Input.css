@@ -54,6 +54,7 @@
 /* Select variant */
 .field__select {
   padding: var(--space-2) var(--space-3);
+  padding-right: 2.25rem; /* room for custom arrow */
   background: var(--color-surface-inset);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -61,7 +62,15 @@
   font: var(--text-body);
   cursor: pointer;
   outline: none;
+  width: 100%;
   transition: border-color var(--duration-fast) var(--easing-default);
+
+  /* Hide native arrow, show consistent custom chevron */
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23888070' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
 }
 
 .field__select:focus {

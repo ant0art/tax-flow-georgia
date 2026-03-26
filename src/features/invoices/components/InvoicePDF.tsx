@@ -1,5 +1,22 @@
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { Document, Font, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import type { InvoiceFormData, InvoiceItem } from '@/entities/invoice/schemas';
+// Vite resolves this to a hashed, absolute URL — no CSP issues, no runtime path guessing
+import interTTF from '@/assets/fonts/Inter.ttf';
+
+// ── Register Inter TTF (Cyrillic + Latin, served locally via Vite) ────────────
+Font.register({
+  family: 'Inter',
+  fonts: [
+    { src: interTTF, fontWeight: 400 },
+    { src: interTTF, fontWeight: 600 },
+    { src: interTTF, fontWeight: 700 },
+  ],
+});
+
+
+
+
+Font.registerHyphenationCallback((word) => [word]);
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: '$', EUR: '€', GBP: '£', GEL: '₾',
@@ -8,7 +25,7 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 const styles = StyleSheet.create({
   page: {
     padding: 40,
-    fontFamily: 'Helvetica',
+    fontFamily: 'Inter',
     fontSize: 10,
     color: '#1A1A1A',
   },
@@ -21,13 +38,13 @@ const styles = StyleSheet.create({
     borderBottomColor: '#B83A2D',
   },
   titleBlock: {},
-  title: { fontSize: 22, fontFamily: 'Helvetica-Bold', color: '#B83A2D' },
+  title: { fontSize: 22, fontWeight: 700, color: '#B83A2D' },
   invoiceNumber: { fontSize: 10, color: '#6B6560', marginTop: 4 },
   dateBlock: { alignItems: 'flex-end' },
   dateLabel: { fontSize: 8, color: '#9A918A' },
-  dateValue: { fontSize: 10, fontFamily: 'Helvetica-Bold' },
+  dateValue: { fontSize: 10, fontWeight: 600 },
 
-  /* ── Two-column parties (Zoho-style) ── */
+  /* ── Two-column parties ── */
   parties: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -41,10 +58,10 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     textTransform: 'uppercase' as const,
   },
-  partyName: { fontSize: 11, fontFamily: 'Helvetica-Bold', marginBottom: 2 },
+  partyName: { fontSize: 11, fontWeight: 700, marginBottom: 2 },
   partyDetail: { fontSize: 9, color: '#6B6560', lineHeight: 1.5 },
 
-  /* Banking sub-section inside payable-to column */
+  /* Banking sub-section */
   bankingWrap: {
     marginTop: 10,
     paddingTop: 8,
@@ -75,14 +92,14 @@ const styles = StyleSheet.create({
   totals: { alignItems: 'flex-end', marginBottom: 20 },
   totalRow: { flexDirection: 'row', width: 200, justifyContent: 'space-between', marginBottom: 3 },
   totalLabel: { fontSize: 10, color: '#6B6560' },
-  totalValue: { fontSize: 10, fontFamily: 'Helvetica-Bold' },
+  totalValue: { fontSize: 10, fontWeight: 600 },
   grandTotal: {
     flexDirection: 'row', width: 200, justifyContent: 'space-between',
     borderTopWidth: 1, borderTopColor: '#1A1A1A',
     paddingTop: 4, marginTop: 4,
   },
-  grandLabel: { fontSize: 12, fontFamily: 'Helvetica-Bold' },
-  grandValue: { fontSize: 12, fontFamily: 'Helvetica-Bold', color: '#B83A2D' },
+  grandLabel: { fontSize: 12, fontWeight: 700 },
+  grandValue: { fontSize: 12, fontWeight: 700, color: '#B83A2D' },
 
   notes: { fontSize: 9, color: '#6B6560', marginTop: 12 },
   footer: {
@@ -96,6 +113,7 @@ const styles = StyleSheet.create({
 interface Props {
   invoice: InvoiceFormData;
   items: InvoiceItem[];
+  t: Record<string, string>;
   settings?: {
     fullName: string;
     tin: string;
@@ -112,7 +130,7 @@ interface Props {
   };
 }
 
-export function InvoicePDF({ invoice, items, settings, client }: Props) {
+export function InvoicePDF({ invoice, items, t, settings, client }: Props) {
   const sym = CURRENCY_SYMBOLS[invoice.currency] ?? invoice.currency;
 
   return (
@@ -121,13 +139,13 @@ export function InvoicePDF({ invoice, items, settings, client }: Props) {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.titleBlock}>
-            <Text style={styles.title}>INVOICE</Text>
+            <Text style={styles.title}>{t.pdf_invoice_title}</Text>
             <Text style={styles.invoiceNumber}>{invoice.number}</Text>
           </View>
           <View style={styles.dateBlock}>
-            <Text style={styles.dateLabel}>Submitted on</Text>
+            <Text style={styles.dateLabel}>{t.pdf_submitted}</Text>
             <Text style={styles.dateValue}>{invoice.date}</Text>
-            <Text style={{ ...styles.dateLabel, marginTop: 8 }}>Due date</Text>
+            <Text style={{ ...styles.dateLabel, marginTop: 8 }}>{t.pdf_due}</Text>
             <Text style={styles.dateValue}>{invoice.dueDate}</Text>
           </View>
         </View>
@@ -136,29 +154,29 @@ export function InvoicePDF({ invoice, items, settings, client }: Props) {
         <View style={styles.parties}>
           {/* LEFT: Invoice For (client) */}
           <View style={styles.partyCol}>
-            <Text style={styles.partyLabel}>Invoice for</Text>
+            <Text style={styles.partyLabel}>{t.pdf_invoice_for}</Text>
             <Text style={styles.partyName}>{invoice.clientName}</Text>
-            {invoice.project && <Text style={styles.partyDetail}>Project: {invoice.project}</Text>}
-            {client?.bankName && <Text style={styles.partyDetail}>Bank: {client.bankName}</Text>}
-            {client?.iban && <Text style={styles.partyDetail}>Account: {client.iban}</Text>}
+            {invoice.project && <Text style={styles.partyDetail}>{t.pdf_project}{invoice.project}</Text>}
+            {client?.bankName && <Text style={styles.partyDetail}>{t.pdf_bank}: {client.bankName}</Text>}
+            {client?.iban && <Text style={styles.partyDetail}>{t.pdf_account}: {client.iban}</Text>}
           </View>
 
           {/* RIGHT: Payable To (seller) + Banking Details */}
           <View style={styles.partyCol}>
-            <Text style={styles.partyLabel}>Payable to</Text>
+            <Text style={styles.partyLabel}>{t.pdf_payable_to}</Text>
             <Text style={styles.partyName}>{settings?.fullName ?? ''}</Text>
-            {settings?.tin && <Text style={styles.partyDetail}>TIN: {settings.tin}</Text>}
+            {settings?.tin && <Text style={styles.partyDetail}>{t.pdf_tin}: {settings.tin}</Text>}
             {settings?.address && <Text style={styles.partyDetail}>{settings.address}</Text>}
             {settings?.email && <Text style={styles.partyDetail}>{settings.email}</Text>}
 
             {/* Banking details grouped with seller */}
             {settings?.bankName && (
               <View style={styles.bankingWrap}>
-                <Text style={styles.partyLabel}>Banking Details</Text>
-                <Text style={styles.partyDetail}>Beneficiary: {settings.beneficiary}</Text>
-                <Text style={styles.partyDetail}>Account: {settings.iban}</Text>
-                <Text style={styles.partyDetail}>Bank: {settings.bankName}</Text>
-                <Text style={styles.partyDetail}>SWIFT: {settings.swift}</Text>
+                <Text style={styles.partyLabel}>{t.pdf_banking}</Text>
+                <Text style={styles.partyDetail}>{t.pdf_beneficiary}: {settings.beneficiary}</Text>
+                <Text style={styles.partyDetail}>{t.pdf_account}: {settings.iban}</Text>
+                <Text style={styles.partyDetail}>{t.pdf_bank}: {settings.bankName}</Text>
+                <Text style={styles.partyDetail}>{t.pdf_swift}: {settings.swift}</Text>
               </View>
             )}
           </View>
@@ -167,10 +185,10 @@ export function InvoicePDF({ invoice, items, settings, client }: Props) {
         {/* Items table */}
         <View style={styles.table}>
           <View style={styles.tableHead}>
-            <Text style={{ ...styles.colDesc, ...styles.colHeadText }}>Description</Text>
-            <Text style={{ ...styles.colQty, ...styles.colHeadText }}>Qty</Text>
-            <Text style={{ ...styles.colPrice, ...styles.colHeadText }}>Unit Price</Text>
-            <Text style={{ ...styles.colTotal, ...styles.colHeadText }}>Total</Text>
+            <Text style={{ ...styles.colDesc, ...styles.colHeadText }}>{t.pdf_col_desc}</Text>
+            <Text style={{ ...styles.colQty, ...styles.colHeadText }}>{t.pdf_col_qty}</Text>
+            <Text style={{ ...styles.colPrice, ...styles.colHeadText }}>{t.pdf_col_price}</Text>
+            <Text style={{ ...styles.colTotal, ...styles.colHeadText }}>{t.pdf_col_total}</Text>
           </View>
           {items.map((item) => (
             <View key={item.id} style={styles.tableRow}>
@@ -185,25 +203,25 @@ export function InvoicePDF({ invoice, items, settings, client }: Props) {
         {/* Totals */}
         <View style={styles.totals}>
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Subtotal</Text>
+            <Text style={styles.totalLabel}>{t.pdf_subtotal}</Text>
             <Text style={styles.totalValue}>{sym}{Number(invoice.subtotal).toFixed(2)}</Text>
           </View>
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>{invoice.vatText}</Text>
+            <Text style={styles.totalLabel}>{invoice.vatText || t.pdf_vat}</Text>
             <Text style={styles.totalValue}>{sym}{Number(invoice.vatAmount).toFixed(2)}</Text>
           </View>
           <View style={styles.grandTotal}>
-            <Text style={styles.grandLabel}>Total</Text>
+            <Text style={styles.grandLabel}>{t.pdf_grand_total}</Text>
             <Text style={styles.grandValue}>{sym}{Number(invoice.total).toFixed(2)}</Text>
           </View>
         </View>
 
         {/* Notes */}
-        {invoice.notes && <Text style={styles.notes}>Notes: {invoice.notes}</Text>}
+        {invoice.notes && <Text style={styles.notes}>{t.pdf_notes}{invoice.notes}</Text>}
 
         {/* Footer */}
         <Text style={styles.footer}>
-          Generated by Tax Flow Georgia • {invoice.number}
+          {t.pdf_footer} • {invoice.number}
         </Text>
       </Page>
     </Document>

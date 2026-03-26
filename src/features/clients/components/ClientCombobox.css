@@ -163,3 +163,22 @@
   background: var(--color-surface-inset, rgba(0, 0, 0, 0.03));
   animation: combobox-enter 0.15s ease-out;
 }
+
+/* Chevron wrapper — gives a larger click target without disturbing the flex layout */
+.combobox__chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: color var(--duration-fast);
+  user-select: none;
+}
+
+.combobox__chevron:hover {
+  color: var(--color-text-secondary);
+}

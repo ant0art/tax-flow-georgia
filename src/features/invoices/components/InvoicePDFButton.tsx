@@ -48,7 +48,7 @@ export function InvoicePDFButton({ invoice, items }: Props) {
         : undefined;
 
       const blob = await pdf(
-        <InvoicePDF invoice={invoice} items={items} settings={pdfSettings} client={clientPdf} />
+        <InvoicePDF invoice={invoice} items={items} t={t} settings={pdfSettings} client={clientPdf} />
       ).toBlob();
 
       const url = URL.createObjectURL(blob);

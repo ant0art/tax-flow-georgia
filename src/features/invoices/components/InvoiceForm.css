@@ -1,19 +1,68 @@
 .invoice-form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: 0;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: var(--space-4) var(--space-5);
   box-shadow: var(--shadow-1);
+  overflow: hidden;
+  max-width: 960px;
+  margin: 0 auto;
+  width: 100%;
 }
 
-.invoice-form__header h2 {
-  font: var(--text-h2);
+/* ── Sections ── */
+.invoice-form__section {
+  padding: var(--space-4) var(--space-5);
 }
 
-.invoice-form__meta,
+.invoice-form__section + .invoice-form__section {
+  border-top: 1px solid var(--color-border);
+}
+
+.invoice-form__section-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* ── Field groups (rows within a section) ── */
+.invoice-form__field-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.invoice-form__field-group--divider {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+/* ── Meta row: Number · Date · Due date · Currency (4-col) ── */
+.invoice-form__meta {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+@media (min-width: 640px) {
+  /* Number is slightly wider (mono code), rest equal */
+  .invoice-form__meta {
+    grid-template-columns: 1.3fr 1fr 1fr 1fr;
+  }
+}
+
+/* ── Client row: Client · Project · Entity ── */
 .invoice-form__client {
   display: grid;
   grid-template-columns: 1fr;
@@ -21,25 +70,12 @@
 }
 
 @media (min-width: 640px) {
-  .invoice-form__meta { grid-template-columns: 1fr 1fr 1fr; }
-  .invoice-form__client { grid-template-columns: 2fr 1fr 1fr; }
+  .invoice-form__client {
+    grid-template-columns: 2fr 1fr 1fr;
+  }
 }
 
-/* Items table */
-.invoice-form__items {
-  border-top: 1px solid var(--color-border);
-  padding-top: var(--space-4);
-}
-
-.invoice-form__items h3 {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--color-text-tertiary);
-  margin-bottom: var(--space-3);
-}
-
+/* ── Items table ── */
 .items-table {
   display: flex;
   flex-direction: column;
@@ -88,11 +124,8 @@
   background: rgba(184, 58, 45, 0.08);
 }
 
-.items-table__remove:disabled {
-  opacity: 0.3;
-}
+.items-table__remove:disabled { opacity: 0.3; }
 
-/* Mobile: stack items */
 @media (max-width: 639px) {
   .items-table__head { display: none; }
   .items-table__row {
@@ -104,16 +137,36 @@
   }
 }
 
-/* Totals */
+/* ── Bottom area: Notes (left) + Totals (right) ── */
+.invoice-form__bottom {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+@media (min-width: 640px) {
+  .invoice-form__bottom {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+  .invoice-form__notes {
+    flex: 1;
+  }
+}
+
+/* ── Totals ── */
 .invoice-form__totals {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  padding: var(--space-4);
+  padding: var(--space-3) var(--space-4);
   background: var(--color-surface-inset);
   border-radius: var(--radius-md);
-  align-self: flex-end;
-  min-width: 280px;
+  min-width: 260px;
 }
 
 .invoice-form__total-row {
@@ -130,9 +183,13 @@
   color: var(--color-text);
 }
 
+/* ── Actions ── */
 .invoice-form__actions {
   display: flex;
   gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface-inset);
 }
 
 /* VAT editable row */
