@@ -1,0 +1,126 @@
+.invoice-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+.invoice-form__header h2 {
+  font: var(--text-h2);
+}
+
+.invoice-form__meta,
+.invoice-form__client {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .invoice-form__meta { grid-template-columns: 1fr 1fr 1fr; }
+  .invoice-form__client { grid-template-columns: 2fr 1fr 1fr; }
+}
+
+/* Items table */
+.invoice-form__items h3 {
+  font: var(--text-h3);
+  margin-bottom: var(--space-3);
+}
+
+.items-table {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.items-table__head {
+  display: grid;
+  grid-template-columns: 3fr 1fr 1fr 1fr 32px;
+  gap: var(--space-2);
+  font: var(--text-caption);
+  color: var(--color-text-tertiary);
+  padding: 0 var(--space-1);
+}
+
+.items-table__row {
+  display: grid;
+  grid-template-columns: 3fr 1fr 1fr 1fr 32px;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.items-table__total {
+  font: var(--text-body);
+  font-weight: 500;
+  color: var(--color-text);
+  text-align: right;
+  padding-right: var(--space-2);
+}
+
+.items-table__remove {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-tertiary);
+  font-size: 14px;
+  transition: color var(--duration-fast), background var(--duration-fast);
+}
+
+.items-table__remove:hover:not(:disabled) {
+  color: var(--color-error);
+  background: rgba(184, 58, 45, 0.08);
+}
+
+.items-table__remove:disabled {
+  opacity: 0.3;
+}
+
+/* Mobile: stack items */
+@media (max-width: 639px) {
+  .items-table__head { display: none; }
+  .items-table__row {
+    grid-template-columns: 1fr 1fr 1fr 32px;
+    gap: var(--space-2);
+  }
+  .items-table__row .field__input:first-child {
+    grid-column: 1 / -2;
+  }
+}
+
+/* Totals */
+.invoice-form__totals {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-surface-inset);
+  border-radius: var(--radius-md);
+  align-self: flex-end;
+  min-width: 280px;
+}
+
+.invoice-form__total-row {
+  display: flex;
+  justify-content: space-between;
+  font: var(--text-body);
+  color: var(--color-text-secondary);
+}
+
+.invoice-form__total-row--grand {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-2);
+  font: var(--text-h3);
+  color: var(--color-text);
+}
+
+.invoice-form__actions {
+  display: flex;
+  gap: var(--space-3);
+}

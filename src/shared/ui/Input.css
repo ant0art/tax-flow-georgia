@@ -1,0 +1,68 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.field__label {
+  font: var(--text-small);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.field__input {
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-inset);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font: var(--text-body);
+  transition: border-color var(--duration-fast) var(--easing-default),
+              box-shadow var(--duration-fast) var(--easing-default);
+  outline: none;
+}
+
+.field__input:focus {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px rgba(75, 96, 127, 0.15);
+}
+
+.field__input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.field--error .field__input {
+  border-color: var(--color-error);
+}
+
+.field--error .field__input:focus {
+  box-shadow: 0 0 0 3px rgba(184, 58, 45, 0.15);
+}
+
+.field__hint {
+  font: var(--text-small);
+  color: var(--color-text-tertiary);
+}
+
+.field__error {
+  font: var(--text-small);
+  color: var(--color-error);
+}
+
+/* Select variant */
+.field__select {
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-inset);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font: var(--text-body);
+  cursor: pointer;
+  outline: none;
+  transition: border-color var(--duration-fast) var(--easing-default);
+}
+
+.field__select:focus {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px rgba(75, 96, 127, 0.15);
+}

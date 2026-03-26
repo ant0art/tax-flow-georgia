@@ -1,0 +1,62 @@
+.transaction-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+.transaction-form__title { font: var(--text-h3); }
+
+.transaction-form__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .transaction-form__grid { grid-template-columns: 1fr 1fr; }
+}
+
+.transaction-form__amounts {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .transaction-form__amounts { grid-template-columns: 1fr 1fr 1fr 1fr; }
+}
+
+.transaction-form__computed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--color-surface-inset);
+  border-radius: var(--radius-md);
+}
+
+.transaction-form__gel,
+.transaction-form__tax {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.transaction-form__gel .amount {
+  font: var(--text-h3);
+  color: var(--color-success);
+}
+
+.transaction-form__tax .amount {
+  font: var(--text-body);
+  color: var(--color-warning);
+}
+
+.transaction-form__actions {
+  display: flex;
+  gap: var(--space-3);
+}
