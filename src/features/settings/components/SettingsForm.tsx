@@ -6,10 +6,13 @@ import { useSettings } from '@/features/settings/hooks/useSettings';
 import { useDraftPersist } from '@/shared/hooks/useDraftPersist';
 import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
+import { useT } from '@/shared/i18n/useT';
+import { Icon } from '@/shared/ui/Icon';
 import './SettingsForm.css';
 
 export function SettingsForm() {
   const { settings, isLoading, save, isSaving } = useSettings();
+  const t = useT();
 
   const {
     register,
@@ -22,12 +25,10 @@ export function SettingsForm() {
     defaultValues: SETTINGS_DEFAULTS,
   });
 
-  // Load from Sheets when data arrives
   useEffect(() => {
     if (settings) reset(settings);
   }, [settings, reset]);
 
-  // Draft persistence
   const watchAll = watch();
   const restore = useCallback((data: SettingsFormData) => reset(data), [reset]);
   const { clearDraft } = useDraftPersist('settings', watchAll, restore);
@@ -38,69 +39,75 @@ export function SettingsForm() {
   };
 
   if (isLoading) {
-    return <div className="settings-skeleton">Загрузка настроек...</div>;
+    return <div className="settings-skeleton">{t['loading_settings']}</div>;
   }
 
   return (
     <form className="settings-form" onSubmit={handleSubmit(onSubmit)}>
       <section className="settings-section">
-        <h2 className="settings-section__title">👤 Личные данные</h2>
+        <h2 className="settings-section__title section-title">
+          <Icon name="user" size={18} />
+          {t['settings_personal']}
+        </h2>
         <div className="settings-grid">
           <Input
-            label="Полное имя / название ИП"
-            hint="Как указано в свидетельстве (Individual Entrepreneur ...)"
+            label={t['settings_fullname']}
+            hint={t['settings_fullname_hint']}
             error={errors.fullName?.message}
             {...register('fullName')}
           />
           <Input
-            label="TIN (идентификационный номер)"
-            hint="9 или 11 цифр из rs.ge"
+            label={t['settings_tin']}
+            hint={t['settings_tin_hint']}
             error={errors.tin?.message}
             {...register('tin')}
           />
           <Input
-            label="Адрес"
+            label={t['settings_address']}
             error={errors.address?.message}
             {...register('address')}
           />
           <Input
-            label="Email"
+            label={t['settings_email']}
             type="email"
             error={errors.email?.message}
             {...register('email')}
           />
           <Input
-            label="Телефон"
-            hint="Необязательно"
+            label={t['settings_phone']}
+            hint={t['settings_phone_hint']}
             {...register('phone')}
           />
         </div>
       </section>
 
       <section className="settings-section">
-        <h2 className="settings-section__title">🏦 Банковские реквизиты</h2>
+        <h2 className="settings-section__title section-title">
+          <Icon name="bank" size={18} />
+          {t['settings_bank']}
+        </h2>
         <div className="settings-grid">
           <Input
-            label="Название банка"
-            hint="JSC TBC Bank, Tbilisi, Georgia"
+            label={t['settings_bank_name']}
+            hint={t['settings_bank_name_hint']}
             error={errors.bankName?.message}
             {...register('bankName')}
           />
           <Input
-            label="Получатель (Beneficiary)"
+            label={t['settings_beneficiary']}
             error={errors.beneficiary?.message}
             {...register('beneficiary')}
           />
           <Input
-            label="IBAN"
-            hint="Начинается с GE, 22 символа"
+            label={t['settings_iban']}
+            hint={t['settings_iban_hint']}
             error={errors.iban?.message}
             mono
             {...register('iban')}
           />
           <Input
-            label="SWIFT"
-            hint="8 или 11 символов (например TBCBGE22)"
+            label={t['settings_swift']}
+            hint={t['settings_swift_hint']}
             error={errors.swift?.message}
             mono
             {...register('swift')}
@@ -109,10 +116,13 @@ export function SettingsForm() {
       </section>
 
       <section className="settings-section">
-        <h2 className="settings-section__title">📋 Настройки по умолчанию</h2>
+        <h2 className="settings-section__title section-title">
+          <Icon name="sliders" size={18} />
+          {t['settings_defaults']}
+        </h2>
         <div className="settings-grid">
           <div className="field">
-            <label className="field__label" htmlFor="defaultCurrency">Валюта по умолчанию</label>
+            <label className="field__label" htmlFor="defaultCurrency">{t['settings_default_currency']}</label>
             <select className="field__select" id="defaultCurrency" {...register('defaultCurrency')}>
               <option value="USD">USD ($)</option>
               <option value="EUR">EUR (€)</option>
@@ -121,8 +131,8 @@ export function SettingsForm() {
             </select>
           </div>
           <Input
-            label="Налоговая ставка"
-            hint="От 0 до 1 (1% = 0.01)"
+            label={t['settings_tax_rate']}
+            hint={t['settings_tax_rate_hint']}
             type="number"
             step="0.001"
             mono
@@ -130,14 +140,14 @@ export function SettingsForm() {
             {...register('taxRate')}
           />
           <Input
-            label="Текст НДС"
-            hint="Zero rated, Not applicable и т.п."
+            label={t['settings_vat_text']}
+            hint={t['settings_vat_text_hint']}
             error={errors.vatText?.message}
             {...register('vatText')}
           />
           <Input
-            label="Префикс нумерации инвойсов"
-            hint="Необязательно"
+            label={t['settings_invoice_prefix']}
+            hint={t['settings_invoice_prefix_hint']}
             {...register('invoicePrefix')}
           />
         </div>
@@ -145,11 +155,11 @@ export function SettingsForm() {
 
       <div className="settings-form__actions">
         <Button type="submit" loading={isSaving} disabled={!isDirty}>
-          Сохранить
+          {t['settings_save']}
         </Button>
         {isDirty && (
           <Button type="button" variant="ghost" onClick={() => reset(settings)}>
-            Отменить
+            {t['settings_cancel']}
           </Button>
         )}
       </div>

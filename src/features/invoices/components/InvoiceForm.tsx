@@ -8,6 +8,8 @@ import { useClients } from '@/features/clients/hooks/useClients';
 import { useSettings } from '@/features/settings/hooks/useSettings';
 import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
+import { useT } from '@/shared/i18n/useT';
+import { Icon } from '@/shared/ui/Icon';
 import './InvoiceForm.css';
 
 interface InvoiceFormProps {
@@ -20,6 +22,7 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
   const { invoices, saveInvoice, isSaving } = useInvoices();
   const { clients } = useClients();
   const { settings } = useSettings();
+  const t = useT();
 
   const today = new Date().toISOString().split('T')[0];
   const defaultDue = new Date(Date.now() + 10 * 86400000).toISOString().split('T')[0];
@@ -82,11 +85,9 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
         item.total = Number(item.quantity) * Number(item.unitPrice);
       }
       next[index] = item;
-
-      // Recalculate invoice totals
       const subtotal = next.reduce((sum, it) => sum + it.total, 0);
       setValue('subtotal', subtotal);
-      setValue('total', subtotal); // VAT = 0 for now
+      setValue('total', subtotal);
       return next;
     });
   };
@@ -135,24 +136,27 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
   return (
     <form className="invoice-form" onSubmit={handleSubmit(onSubmit)}>
       <div className="invoice-form__header">
-        <h2>{isEdit ? '✏️ Редактировать инвойс' : '📄 Новый инвойс'}</h2>
+        <h2>
+          <Icon name={isEdit ? 'edit' : 'file-text'} size={18} />
+          {isEdit ? t['invoice_edit'] : t['invoice_new']}
+        </h2>
       </div>
 
       <div className="invoice-form__meta">
         <Input
-          label="Номер"
+          label={t['invoice_number']}
           error={errors.number?.message}
           mono
           {...register('number')}
         />
         <Input
-          label="Дата"
+          label={t['invoice_date']}
           type="date"
           error={errors.date?.message}
           {...register('date')}
         />
         <Input
-          label="Срок оплаты"
+          label={t['invoice_due_date']}
           type="date"
           error={errors.dueDate?.message}
           {...register('dueDate')}
@@ -161,14 +165,14 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
 
       <div className="invoice-form__client">
         <div className="field">
-          <label className="field__label" htmlFor="inv-client">Клиент</label>
+          <label className="field__label" htmlFor="inv-client">{t['invoice_client']}</label>
           <select
             className="field__select"
             id="inv-client"
             value={watch('clientId')}
             onChange={handleClientChange}
           >
-            <option value="">— Выберите клиента —</option>
+            <option value="">{t['invoice_client_select']}</option>
             {clients.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
@@ -179,7 +183,7 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
         </div>
 
         <div className="field">
-          <label className="field__label" htmlFor="inv-currency">Валюта</label>
+          <label className="field__label" htmlFor="inv-currency">{t['invoice_currency']}</label>
           <select className="field__select" id="inv-currency" {...register('currency')}>
             <option value="USD">USD ($)</option>
             <option value="EUR">EUR (€)</option>
@@ -188,25 +192,24 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
           </select>
         </div>
 
-        <Input label="Проект" {...register('project')} />
+        <Input label={t['invoice_project']} {...register('project')} />
       </div>
 
-      {/* Line items */}
       <section className="invoice-form__items">
-        <h3>Услуги</h3>
+        <h3>{t['invoice_services']}</h3>
         <div className="items-table">
           <div className="items-table__head">
-            <span>Описание</span>
-            <span>Кол-во</span>
-            <span>Цена</span>
-            <span>Итого</span>
+            <span>{t['invoice_desc']}</span>
+            <span>{t['invoice_qty']}</span>
+            <span>{t['invoice_price']}</span>
+            <span>{t['invoice_total']}</span>
             <span></span>
           </div>
           {items.map((item, idx) => (
             <div key={item.id} className="items-table__row">
               <input
                 className="field__input"
-                placeholder="Описание услуги..."
+                placeholder={t['invoice_desc']}
                 value={item.description}
                 onChange={(e) => updateItem(idx, 'description', e.target.value)}
               />
@@ -241,14 +244,13 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
           ))}
         </div>
         <Button type="button" variant="ghost" size="sm" onClick={addItem}>
-          + Добавить строку
+          {t['invoice_add_row']}
         </Button>
       </section>
 
-      {/* Totals */}
       <div className="invoice-form__totals">
         <div className="invoice-form__total-row">
-          <span>Subtotal</span>
+          <span>{t['invoice_subtotal']}</span>
           <span className="amount">{currency} {subtotal.toFixed(2)}</span>
         </div>
         <div className="invoice-form__total-row">
@@ -256,19 +258,19 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
           <span className="amount">{currency} 0.00</span>
         </div>
         <div className="invoice-form__total-row invoice-form__total-row--grand">
-          <strong>Итого</strong>
+          <strong>{t['invoice_grand_total']}</strong>
           <strong className="amount">{currency} {total.toFixed(2)}</strong>
         </div>
       </div>
 
-      <Input label="Примечания" {...register('notes')} />
+      <Input label={t['invoice_notes']} {...register('notes')} />
 
       <div className="invoice-form__actions">
         <Button type="submit" loading={isSaving}>
-          {isEdit ? 'Сохранить' : 'Создать инвойс'}
+          {isEdit ? t['invoice_save'] : t['invoice_submit']}
         </Button>
         <Button type="button" variant="ghost" onClick={onDone}>
-          Отмена
+          {t['invoice_cancel']}
         </Button>
       </div>
     </form>

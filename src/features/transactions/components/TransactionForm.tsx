@@ -8,6 +8,8 @@ import { useSettings } from '@/features/settings/hooks/useSettings';
 import { fetchNBGRate } from '@/shared/api/nbg-rate';
 import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
+import { useT } from '@/shared/i18n/useT';
+import { Icon } from '@/shared/ui/Icon';
 import './TransactionForm.css';
 
 interface Props {
@@ -19,6 +21,7 @@ export function TransactionForm({ onDone }: Props) {
   const { invoices } = useInvoices();
   const { settings } = useSettings();
   const [fetchingRate, setFetchingRate] = useState(false);
+  const t = useT();
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -55,7 +58,6 @@ export function TransactionForm({ onDone }: Props) {
   const nbgRate = watch('nbgRate');
   const taxRate = watch('taxRate');
 
-  // Auto-fetch NBG rate when date or currency changes
   useEffect(() => {
     if (!date || currency === 'GEL') {
       if (currency === 'GEL') setValue('nbgRate', 1);
@@ -72,7 +74,6 @@ export function TransactionForm({ onDone }: Props) {
     return () => { cancelled = true; };
   }, [date, currency, setValue]);
 
-  // Recalculate GEL amount and tax when inputs change
   useEffect(() => {
     if (nbgRate > 0 && amountOriginal > 0) {
       const gel = amountOriginal * nbgRate;
@@ -81,7 +82,6 @@ export function TransactionForm({ onDone }: Props) {
     }
   }, [amountOriginal, nbgRate, taxRate, setValue]);
 
-  // Invoice linking
   const handleInvoiceSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const invId = e.target.value;
     const inv = invoices.find((i) => i.id === invId);
@@ -105,14 +105,16 @@ export function TransactionForm({ onDone }: Props) {
 
   return (
     <form className="transaction-form" onSubmit={handleSubmit(onSubmit)}>
-      <h3 className="transaction-form__title">💸 Новая транзакция</h3>
+      <h3 className="transaction-form__title">
+        <Icon name="dollar-sign" size={18} />
+        {t['transaction_new']}
+      </h3>
 
-      {/* Link to invoice */}
       {unpaidInvoices.length > 0 && (
         <div className="field">
-          <label className="field__label" htmlFor="tx-invoice">Привязать к инвойсу (опционально)</label>
+          <label className="field__label" htmlFor="tx-invoice">{t['transaction_link_invoice']}</label>
           <select className="field__select" id="tx-invoice" onChange={handleInvoiceSelect}>
-            <option value="">— Без привязки —</option>
+            <option value="">{t['transaction_no_link']}</option>
             {unpaidInvoices.map((inv) => (
               <option key={inv.id} value={inv.id}>
                 {inv.number} — {inv.clientName} ({inv.currency} {Number(inv.total).toFixed(2)})
@@ -123,15 +125,15 @@ export function TransactionForm({ onDone }: Props) {
       )}
 
       <div className="transaction-form__grid">
-        <Input label="Дата" type="date" error={errors.date?.message} {...register('date')} />
-        <Input label="Клиент" error={errors.clientName?.message} {...register('clientName')} />
-        <Input label="Описание" error={errors.description?.message} {...register('description')} />
-        <Input label="Проект" {...register('project')} />
+        <Input label={t['transaction_date']} type="date" error={errors.date?.message} {...register('date')} />
+        <Input label={t['transaction_client']} error={errors.clientName?.message} {...register('clientName')} />
+        <Input label={t['transaction_description']} error={errors.description?.message} {...register('description')} />
+        <Input label={t['transaction_project']} {...register('project')} />
       </div>
 
       <div className="transaction-form__amounts">
         <Input
-          label="Сумма"
+          label={t['transaction_amount']}
           type="number"
           step="0.01"
           mono
@@ -139,7 +141,7 @@ export function TransactionForm({ onDone }: Props) {
           {...register('amountOriginal', { valueAsNumber: true })}
         />
         <div className="field">
-          <label className="field__label" htmlFor="tx-currency">Валюта</label>
+          <label className="field__label" htmlFor="tx-currency">{t['transaction_currency']}</label>
           <select className="field__select" id="tx-currency" {...register('currency')}>
             <option value="USD">USD ($)</option>
             <option value="EUR">EUR (€)</option>
@@ -147,30 +149,37 @@ export function TransactionForm({ onDone }: Props) {
             <option value="GEL">GEL (₾)</option>
           </select>
         </div>
-        <Input
-          label={`Курс NBG ${fetchingRate ? '⏳' : ''}`}
-          type="number"
-          step="0.0001"
-          mono
-          hint="Заполняется автоматически"
-          error={errors.nbgRate?.message}
-          {...register('nbgRate', { valueAsNumber: true })}
-        />
+        <div className="field-with-indicator">
+          <Input
+            label={t['transaction_nbg_rate']}
+            type="number"
+            step="0.0001"
+            mono
+            hint={t['transaction_nbg_auto']}
+            error={errors.nbgRate?.message}
+            {...register('nbgRate', { valueAsNumber: true })}
+          />
+          {fetchingRate && (
+            <span className="field-loading-indicator">
+              <Icon name="loader" size={13} className="icon--spin" />
+            </span>
+          )}
+        </div>
         <div className="transaction-form__computed">
           <div className="transaction-form__gel">
-            <span className="field__label">Сумма в GEL</span>
+            <span className="field__label">{t['transaction_gel_amount']}</span>
             <span className="amount">{watch('amountGEL').toFixed(2)} ₾</span>
           </div>
           <div className="transaction-form__tax">
-            <span className="field__label">Налог ({(taxRate * 100).toFixed(1)}%)</span>
+            <span className="field__label">{t['transaction_tax']} ({(taxRate * 100).toFixed(1)}%)</span>
             <span className="amount">{watch('taxAmount').toFixed(2)} ₾</span>
           </div>
         </div>
       </div>
 
       <div className="transaction-form__actions">
-        <Button type="submit" loading={isSubmitting}>Добавить</Button>
-        <Button type="button" variant="ghost" onClick={onDone}>Отмена</Button>
+        <Button type="submit" loading={isSubmitting}>{t['transaction_submit']}</Button>
+        <Button type="button" variant="ghost" onClick={onDone}>{t['transaction_cancel']}</Button>
       </div>
     </form>
   );

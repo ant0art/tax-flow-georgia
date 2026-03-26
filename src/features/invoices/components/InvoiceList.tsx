@@ -5,13 +5,15 @@ import type { InvoiceFormData, InvoiceItem } from '@/entities/invoice/schemas';
 import { InvoicePDFButton } from './InvoicePDFButton';
 import { Button } from '@/shared/ui/Button';
 import { useSettings } from '@/features/settings/hooks/useSettings';
+import { useT } from '@/shared/i18n/useT';
+import { Icon } from '@/shared/ui/Icon';
 import './InvoiceList.css';
 
-const STATUS_LABELS: Record<string, { label: string; emoji: string }> = {
-  draft: { label: 'Черновик', emoji: '📝' },
-  sent: { label: 'Отправлен', emoji: '📤' },
-  paid: { label: 'Оплачен', emoji: '✅' },
-  overdue: { label: 'Просрочен', emoji: '⚠️' },
+const STATUS_ICONS: Record<string, { labelKey: string; icon: React.ReactNode }> = {
+  draft: { labelKey: 'status_draft', icon: <Icon name="file-draft" size={13} /> },
+  sent: { labelKey: 'status_sent', icon: <Icon name="send" size={13} /> },
+  paid: { labelKey: 'status_paid', icon: <Icon name="check-circle" size={13} /> },
+  overdue: { labelKey: 'status_overdue', icon: <Icon name="alert-triangle" size={13} /> },
 };
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
@@ -21,6 +23,7 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 export function InvoiceList() {
   const { invoices, isLoading, deleteInvoice, getItemsForInvoice, saveInvoice } = useInvoices();
   const { settings } = useSettings();
+  const t = useT();
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState<{ invoice: InvoiceFormData; items: InvoiceItem[]; rowIndex: number } | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -61,7 +64,7 @@ export function InvoiceList() {
   };
 
   if (isLoading) {
-    return <div className="invoices-skeleton">Загрузка инвойсов...</div>;
+    return <div className="invoices-skeleton">{t['loading_invoices']}</div>;
   }
 
   if (showForm) {
@@ -72,46 +75,54 @@ export function InvoiceList() {
     return <InvoiceForm initial={editItem} onDone={() => setEditItem(null)} />;
   }
 
+  const filterKeys: string[] = ['all', 'draft', 'sent', 'paid', 'overdue'];
+
   return (
     <div className="invoice-list">
       <div className="invoice-list__header">
-        <h1>📄 Инвойсы ({invoices.length})</h1>
-        <Button onClick={() => setShowForm(true)}>+ Создать</Button>
+        <h1 className="page-title">
+          <Icon name="file-text" size={22} />
+          {t['invoices_title']} ({invoices.length})
+        </h1>
+        <Button onClick={() => setShowForm(true)}>{t['invoice_create']}</Button>
       </div>
 
       {/* Filters */}
       <div className="invoice-list__filters">
-        {['all', 'draft', 'sent', 'paid', 'overdue'].map((s) => (
+        {filterKeys.map((s) => (
           <button
             key={s}
             className={`filter-chip ${statusFilter === s ? 'filter-chip--active' : ''}`}
             onClick={() => setStatusFilter(s)}
           >
-            {s === 'all' ? 'Все' : `${STATUS_LABELS[s].emoji} ${STATUS_LABELS[s].label}`}
+            {s === 'all'
+              ? t['invoice_filter_all']
+              : <>{STATUS_ICONS[s].icon} {t[STATUS_ICONS[s].labelKey]}</>
+            }
           </button>
         ))}
       </div>
 
       {filtered.length === 0 ? (
         <div className="invoice-list__empty">
-          <p>{statusFilter === 'all' ? 'Инвойсов пока нет' : 'Нет инвойсов с таким статусом'}</p>
+          <p>{statusFilter === 'all' ? t['invoice_empty'] : t['invoice_empty_filter']}</p>
           {statusFilter === 'all' && (
             <p style={{ color: 'var(--color-text-tertiary)' }}>
-              Создайте первый инвойс, чтобы начать вести учёт
+              {t['invoice_empty_hint']}
             </p>
           )}
         </div>
       ) : (
         <div className="invoice-cards">
           {filtered.map((inv, i) => {
-            const status = STATUS_LABELS[inv.status] ?? STATUS_LABELS.draft;
+            const statusInfo = STATUS_ICONS[inv.status] ?? STATUS_ICONS.draft;
             const sym = CURRENCY_SYMBOLS[inv.currency] ?? inv.currency;
             return (
               <div key={inv.id} className={`invoice-card invoice-card--${inv.status}`}>
                 <div className="invoice-card__top">
                   <span className="invoice-card__number amount">{inv.number}</span>
                   <span className={`invoice-card__status invoice-card__status--${inv.status}`}>
-                    {status.emoji} {status.label}
+                    {statusInfo.icon} {t[statusInfo.labelKey]}
                   </span>
                 </div>
 
@@ -123,20 +134,26 @@ export function InvoiceList() {
                 </div>
 
                 <div className="invoice-card__dates">
-                  <span>📅 {inv.date}</span>
-                  <span>⏰ {inv.dueDate}</span>
+                  <span><Icon name="calendar" size={13} /> {inv.date}</span>
+                  <span><Icon name="clock" size={13} /> {inv.dueDate}</span>
                 </div>
 
                 <div className="invoice-card__actions">
-                  <Button size="sm" variant="ghost" onClick={() => {
+                  <Button size="sm" variant="ghost" title={t['invoice_edit']} onClick={() => {
                     const invItems = getItemsForInvoice(inv.id);
                     setEditItem({ invoice: inv, items: invItems, rowIndex: i + 2 });
-                  }}>✏️</Button>
+                  }}>
+                    <Icon name="edit" size={15} />
+                  </Button>
                   <InvoicePDFButton invoice={inv} items={getItemsForInvoice(inv.id)} />
-                  <Button size="sm" variant="ghost" onClick={() => handleCopy(inv)}>📋</Button>
-                  <Button size="sm" variant="ghost" onClick={() => {
-                    if (confirm('Удалить инвойс?')) deleteInvoice({ id: inv.id, rowIndex: i + 2 });
-                  }}>🗑️</Button>
+                  <Button size="sm" variant="ghost" title={t['copy'] ?? 'Copy'} onClick={() => handleCopy(inv)}>
+                    <Icon name="copy" size={15} />
+                  </Button>
+                  <Button size="sm" variant="ghost" title={t['trash'] ?? 'Delete'} onClick={() => {
+                    if (confirm(t['invoice_delete_confirm'])) deleteInvoice({ id: inv.id, rowIndex: i + 2 });
+                  }}>
+                    <Icon name="trash" size={15} />
+                  </Button>
                 </div>
               </div>
             );

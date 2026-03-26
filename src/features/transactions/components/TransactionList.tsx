@@ -2,6 +2,8 @@ import { useState, useMemo } from 'react';
 import { useTransactions } from '@/features/transactions/hooks/useTransactions';
 import { TransactionForm } from './TransactionForm';
 import { Button } from '@/shared/ui/Button';
+import { useT } from '@/shared/i18n/useT';
+import { Icon } from '@/shared/ui/Icon';
 import './TransactionList.css';
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
@@ -11,34 +13,36 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 export function TransactionList() {
   const { transactions, isLoading, deleteTransaction } = useTransactions();
   const [showForm, setShowForm] = useState(false);
+  const t = useT();
 
-  // Summary stats
   const stats = useMemo(() => {
-    const totalGEL = transactions.reduce((s, t) => s + t.amountGEL, 0);
-    const totalTax = transactions.reduce((s, t) => s + t.taxAmount, 0);
+    const totalGEL = transactions.reduce((s, tx) => s + tx.amountGEL, 0);
+    const totalTax = transactions.reduce((s, tx) => s + tx.taxAmount, 0);
     return { totalGEL, totalTax, count: transactions.length };
   }, [transactions]);
 
   if (isLoading) {
-    return <div className="transactions-skeleton">Загрузка транзакций...</div>;
+    return <div className="transactions-skeleton">{t['loading_transactions']}</div>;
   }
 
   return (
     <div className="transaction-list">
       <div className="transaction-list__header">
-        <h1>💸 Транзакции ({stats.count})</h1>
-        <Button onClick={() => setShowForm(true)}>+ Добавить</Button>
+        <h1 className="page-title">
+          <Icon name="dollar-sign" size={22} />
+          {t['transactions_title']} ({stats.count})
+        </h1>
+        <Button onClick={() => setShowForm(true)}>{t['transaction_add']}</Button>
       </div>
 
-      {/* Quick stats */}
       {stats.count > 0 && (
         <div className="transaction-stats">
           <div className="stat-card">
-            <span className="stat-card__label">Всего получено</span>
+            <span className="stat-card__label">{t['transaction_total_received']}</span>
             <span className="stat-card__value amount">{stats.totalGEL.toFixed(2)} ₾</span>
           </div>
           <div className="stat-card stat-card--tax">
-            <span className="stat-card__label">Налог к уплате</span>
+            <span className="stat-card__label">{t['transaction_tax_due']}</span>
             <span className="stat-card__value amount">{stats.totalTax.toFixed(2)} ₾</span>
           </div>
         </div>
@@ -48,9 +52,9 @@ export function TransactionList() {
 
       {transactions.length === 0 && !showForm ? (
         <div className="transaction-list__empty">
-          <p>Транзакций пока нет</p>
+          <p>{t['transaction_empty']}</p>
           <p style={{ color: 'var(--color-text-tertiary)' }}>
-            Добавьте транзакцию вручную или привяжите к существующему инвойсу
+            {t['transaction_empty_hint']}
           </p>
         </div>
       ) : (
@@ -64,7 +68,9 @@ export function TransactionList() {
                   <span className="tx-row__desc">{tx.description}</span>
                   {tx.clientName && <span className="tx-row__client">{tx.clientName}</span>}
                   {tx.invoiceNumber && (
-                    <span className="tx-row__invoice">📄 {tx.invoiceNumber}</span>
+                    <span className="tx-row__invoice">
+                      <Icon name="file-text" size={13} /> {tx.invoiceNumber}
+                    </span>
                   )}
                 </div>
                 <div className="tx-row__amounts">
@@ -80,8 +86,10 @@ export function TransactionList() {
                 </div>
                 <div className="tx-row__actions">
                   <Button size="sm" variant="ghost" onClick={() => {
-                    if (confirm('Удалить транзакцию?')) deleteTransaction(i + 2);
-                  }}>🗑️</Button>
+                    if (confirm(t['transaction_delete_confirm'])) deleteTransaction(i + 2);
+                  }}>
+                    <Icon name="trash" size={15} />
+                  </Button>
                 </div>
               </div>
             );

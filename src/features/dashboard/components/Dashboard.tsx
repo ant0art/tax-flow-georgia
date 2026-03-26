@@ -6,9 +6,14 @@ import {
 import { useTransactions } from '@/features/transactions/hooks/useTransactions';
 import { useInvoices } from '@/features/invoices/hooks/useInvoices';
 import { useSettings } from '@/features/settings/hooks/useSettings';
+import { useT } from '@/shared/i18n/useT';
+import { Icon } from '@/shared/ui/Icon';
 import './Dashboard.css';
 
-const MONTHS = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
+const MONTH_KEYS = [
+  'month_jan', 'month_feb', 'month_mar', 'month_apr', 'month_may', 'month_jun',
+  'month_jul', 'month_aug', 'month_sep', 'month_oct', 'month_nov', 'month_dec',
+] as const;
 
 interface MonthData {
   name: string;
@@ -20,12 +25,12 @@ export function Dashboard() {
   const { transactions, isLoading: txLoading } = useTransactions();
   const { invoices, isLoading: invLoading } = useInvoices();
   const { settings } = useSettings();
+  const t = useT();
 
   const currentYear = new Date().getFullYear();
 
-  // Monthly breakdown
   const monthlyData = useMemo((): MonthData[] => {
-    const data = MONTHS.map((name) => ({ name, income: 0, tax: 0 }));
+    const data = MONTH_KEYS.map((k) => ({ name: t[k], income: 0, tax: 0 }));
     transactions.forEach((tx) => {
       const d = new Date(tx.date);
       if (d.getFullYear() === currentYear) {
@@ -34,13 +39,12 @@ export function Dashboard() {
       }
     });
     return data;
-  }, [transactions, currentYear]);
+  }, [transactions, currentYear, t]);
 
-  // Summary stats
   const stats = useMemo(() => {
-    const yearTx = transactions.filter((t) => new Date(t.date).getFullYear() === currentYear);
-    const totalIncome = yearTx.reduce((s, t) => s + t.amountGEL, 0);
-    const totalTax = yearTx.reduce((s, t) => s + t.taxAmount, 0);
+    const yearTx = transactions.filter((tx) => new Date(tx.date).getFullYear() === currentYear);
+    const totalIncome = yearTx.reduce((s, tx) => s + tx.amountGEL, 0);
+    const totalTax = yearTx.reduce((s, tx) => s + tx.taxAmount, 0);
 
     const unpaidInvoices = invoices.filter((i) => i.status === 'sent' || i.status === 'draft');
     const overdueInvoices = invoices.filter((i) => i.status === 'overdue');
@@ -61,44 +65,60 @@ export function Dashboard() {
   const isLoading = txLoading || invLoading;
 
   if (isLoading) {
-    return <div className="dashboard-skeleton">Загрузка данных...</div>;
+    return <div className="dashboard-skeleton">{t['loading_data']}</div>;
   }
 
   return (
     <div className="dashboard">
       <div className="dashboard__header">
-        <h1>📊 Дашборд {currentYear}</h1>
+        <h1 className="page-title">
+          <Icon name="chart-bar" size={24} />
+          {t['dashboard_title']} {currentYear}
+        </h1>
         {settings?.fullName && (
-          <span className="dashboard__user">👤 {settings.fullName}</span>
+          <span className="dashboard__user">
+            <Icon name="user" size={16} />
+            {settings.fullName}
+          </span>
         )}
       </div>
 
       {/* Summary cards */}
       <div className="dashboard__stats">
         <div className="dash-stat dash-stat--income">
-          <span className="dash-stat__label">Доход (GEL)</span>
+          <span className="dash-stat__label">{t['dashboard_income_gel']}</span>
           <span className="dash-stat__value amount">{stats.totalIncome.toFixed(2)} ₾</span>
         </div>
         <div className="dash-stat dash-stat--tax">
-          <span className="dash-stat__label">Налог</span>
+          <span className="dash-stat__label">{t['dashboard_tax']}</span>
           <span className="dash-stat__value amount">{stats.totalTax.toFixed(2)} ₾</span>
         </div>
         <div className="dash-stat dash-stat--net">
-          <span className="dash-stat__label">Чистый доход</span>
+          <span className="dash-stat__label">{t['dashboard_net']}</span>
           <span className="dash-stat__value amount">{stats.netIncome.toFixed(2)} ₾</span>
         </div>
         <div className="dash-stat">
-          <span className="dash-stat__label">Инвойсы</span>
-          <span className="dash-stat__value">{stats.paidCount}✅ {stats.unpaidCount}📤 {stats.overdueCount}⚠️</span>
+          <span className="dash-stat__label">{t['dashboard_invoices']}</span>
+          <span className="dash-stat__value">
+            <span className="dash-stat__badge dash-stat__badge--paid">
+              <Icon name="check-circle" size={13} /> {stats.paidCount}
+            </span>
+            <span className="dash-stat__badge dash-stat__badge--sent">
+              <Icon name="send" size={13} /> {stats.unpaidCount}
+            </span>
+            <span className="dash-stat__badge dash-stat__badge--overdue">
+              <Icon name="alert-triangle" size={13} /> {stats.overdueCount}
+            </span>
+          </span>
         </div>
       </div>
 
       {/* Chart */}
       <div className="dashboard__chart">
-        <h2>Доходы по месяцам</h2>
+        <h2 className="section-title">{t['dashboard_chart_title']}</h2>
         {stats.txCount === 0 ? (
           <div className="dashboard__chart-empty">
-            Данных за {currentYear} год пока нет. Добавьте транзакции, чтобы увидеть график.
+            {t['dashboard_no_data'].replace('{year}', String(currentYear))}
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={320}>
@@ -124,7 +144,7 @@ export function Dashboard() {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 formatter={((value: any, name: string) => [
                   `${Number(value ?? 0).toFixed(2)} ₾`,
-                  name === 'income' ? 'Доход' : 'Налог',
+                  name === 'income' ? t['dashboard_tooltip_income'] : t['dashboard_tooltip_tax'],
                 ]) as any}
               />
               <Bar dataKey="income" radius={[4, 4, 0, 0]} name="income">

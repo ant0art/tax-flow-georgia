@@ -57,8 +57,8 @@
 .invoice-card {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-4);
+  gap: 6px;
+  padding: 12px 14px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -96,7 +96,8 @@
 .invoice-card__status--overdue{ background: rgba(212, 137, 10, 0.1); color: var(--color-warning); }
 
 .invoice-card__client {
-  font: var(--text-h3);
+  font-size: 14px;
+  font-weight: 600;
   color: var(--color-text);
 }
 
@@ -106,7 +107,9 @@
 }
 
 .invoice-card__amount {
-  font: var(--text-h2);
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
   color: var(--color-primary);
 }
 

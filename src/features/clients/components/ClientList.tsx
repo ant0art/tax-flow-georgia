@@ -3,12 +3,15 @@ import { useClients } from '@/features/clients/hooks/useClients';
 import { ClientForm } from '@/features/clients/components/ClientForm';
 import type { ClientFormData } from '@/entities/client/schemas';
 import { Button } from '@/shared/ui/Button';
+import { useT } from '@/shared/i18n/useT';
+import { Icon } from '@/shared/ui/Icon';
 import './ClientList.css';
 
 export function ClientList() {
   const { clients, isLoading, addClient, updateClient, deleteClient } = useClients();
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState<{ data: ClientFormData; rowIndex: number } | null>(null);
+  const t = useT();
 
   const handleAdd = async (data: ClientFormData) => {
     await addClient(data);
@@ -22,21 +25,24 @@ export function ClientList() {
   };
 
   const handleDelete = async (rowIndex: number) => {
-    if (confirm('Удалить клиента?')) {
+    if (confirm(t['clients_delete_confirm'])) {
       await deleteClient(rowIndex);
     }
   };
 
   if (isLoading) {
-    return <div className="clients-skeleton">Загрузка клиентов...</div>;
+    return <div className="clients-skeleton">{t['loading_clients']}</div>;
   }
 
   return (
     <div className="client-list">
       <div className="client-list__header">
-        <h2>📇 Клиенты ({clients.length})</h2>
+        <h2 className="section-title">
+          <Icon name="address-book" size={20} />
+          {t['clients_title']} ({clients.length})
+        </h2>
         {!showForm && !editItem && (
-          <Button size="sm" onClick={() => setShowForm(true)}>+ Добавить</Button>
+          <Button size="sm" onClick={() => setShowForm(true)}>{t['clients_add']}</Button>
         )}
       </div>
 
@@ -54,9 +60,9 @@ export function ClientList() {
 
       {clients.length === 0 && !showForm ? (
         <div className="client-list__empty">
-          <p>Клиентов пока нет</p>
+          <p>{t['clients_empty']}</p>
           <p style={{ color: 'var(--color-text-tertiary)' }}>
-            Добавьте первого клиента, чтобы создавать инвойсы быстрее
+            {t['clients_empty_hint']}
           </p>
         </div>
       ) : (
@@ -81,14 +87,14 @@ export function ClientList() {
                   variant="ghost"
                   onClick={() => setEditItem({ data: c, rowIndex: i + 2 })}
                 >
-                  ✏️
+                  <Icon name="edit" size={15} />
                 </Button>
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={() => handleDelete(i + 2)}
                 >
-                  🗑️
+                  <Icon name="trash" size={15} />
                 </Button>
               </div>
             </div>

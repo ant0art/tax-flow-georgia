@@ -150,3 +150,63 @@ html[data-theme] * {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* SVG icon baseline alignment */
+.icon {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+/* Spin animation for loader icon */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.icon--spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Dashboard stat badges */
+.dash-stat__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font: var(--text-small);
+  margin-right: var(--space-2);
+}
+
+.dash-stat__badge--paid { color: var(--color-success); }
+.dash-stat__badge--sent { color: var(--color-accent); }
+.dash-stat__badge--overdue { color: var(--color-warning); }
+
+/* Login card icon color */
+.login-card__icon .icon {
+  color: var(--color-primary);
+}
+
+/* ── Heading + icon alignment utilities ── */
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: var(--text-h1);
+  line-height: 1.2;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: var(--text-h3);
+  line-height: 1.3;
+}
+
+.page-title .icon,
+.section-title .icon {
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+}
+
+
