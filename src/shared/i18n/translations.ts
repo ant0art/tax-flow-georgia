@@ -4,6 +4,7 @@ export const translations = {
     nav_home: 'Home',
     nav_invoices: 'Invoices',
     nav_income: 'Income',
+    nav_clients: 'Clients',
     nav_settings: 'Settings',
 
     // Auth
@@ -96,7 +97,11 @@ export const translations = {
 
     // Clients
     clients_title: 'Clients',
-    clients_add: '+ Add',
+    clients_subtitle: 'Manage your clients — search, filter and edit',
+    clients_add: '+ Add client',
+    clients_search_placeholder: 'Search by name...',
+    clients_filter_all: 'All currencies',
+    clients_filter_currency: 'Currency',
     clients_empty: 'No clients yet',
     clients_empty_hint: 'Add your first client to create invoices faster',
     clients_no_match: 'No clients found',
@@ -194,6 +199,7 @@ export const translations = {
     nav_home: 'Главная',
     nav_invoices: 'Инвойсы',
     nav_income: 'Доходы',
+    nav_clients: 'Клиенты',
     nav_settings: 'Настройки',
 
     // Auth
@@ -286,7 +292,11 @@ export const translations = {
 
     // Clients
     clients_title: 'Клиенты',
-    clients_add: '+ Добавить',
+    clients_subtitle: 'Управление клиентами — поиск, фильтрация и редактирование',
+    clients_add: '+ Добавить клиента',
+    clients_search_placeholder: 'Поиск по имени...',
+    clients_filter_all: 'Все валюты',
+    clients_filter_currency: 'Валюта',
     clients_empty: 'Клиентов пока нет',
     clients_empty_hint: 'Добавьте первого клиента, чтобы создавать инвойсы быстрее',
     clients_no_match: 'Клиенты не найдены',

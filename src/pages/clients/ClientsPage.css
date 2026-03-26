@@ -1,0 +1,118 @@
+/* ── Clients Page ── */
+.clients-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 1000px;
+}
+
+/* Toolbar */
+.clients-page__toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.clients-page__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.clients-page__subtitle {
+  font: var(--text-small);
+  color: var(--color-text-tertiary);
+  margin-top: 2px;
+}
+
+/* Filters row */
+.clients-page__filters {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Search box */
+.clients-search {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+  max-width: 360px;
+}
+
+.clients-search__icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+}
+
+.clients-search__input {
+  width: 100%;
+  padding: 7px 32px 7px 32px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font: var(--text-body);
+  color: var(--color-text);
+  transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.clients-search__input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb, 184, 58, 45), 0.12);
+}
+
+.clients-search__input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+/* Hide the native browser clear button — we render our own */
+.clients-search__input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+
+/* Clear button */
+.clients-search__clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-tertiary);
+  transition: color var(--duration-fast), background var(--duration-fast);
+}
+.clients-search__clear:hover {
+  color: var(--color-text);
+  background: var(--color-surface-inset);
+}
+
+/* Currency filter */
+.clients-page__currency-filter {
+  min-width: 160px;
+  margin: 0;
+}
+
+/* Results count */
+.clients-page__count {
+  font: var(--text-caption);
+  color: var(--color-text-tertiary);
+  margin: 0;
+}
+
+/* Reuse client-cards, client-card etc from ClientList.css */

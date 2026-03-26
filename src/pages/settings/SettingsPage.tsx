@@ -1,15 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { SettingsForm } from '@/features/settings/components/SettingsForm';
-import { ClientList } from '@/features/clients/components/ClientList';
 import { useT } from '@/shared/i18n/useT';
 import { Icon } from '@/shared/ui/Icon';
 import './SettingsPage.css';
 
 const NAV_SECTIONS = [
-  { id: 'section-personal', icon: 'user'         as const, labelKey: 'settings_personal' },
-  { id: 'section-bank',     icon: 'bank'         as const, labelKey: 'settings_bank'     },
-  { id: 'section-defaults', icon: 'sliders'      as const, labelKey: 'settings_defaults' },
-  { id: 'section-clients',  icon: 'address-book' as const, labelKey: 'clients_title'   },
+  { id: 'section-personal', icon: 'user'    as const, labelKey: 'settings_personal' },
+  { id: 'section-bank',     icon: 'bank'    as const, labelKey: 'settings_bank'     },
+  { id: 'section-defaults', icon: 'sliders' as const, labelKey: 'settings_defaults' },
 ];
 
 export function SettingsPage() {
@@ -58,10 +56,6 @@ export function SettingsPage() {
         {/* ── Main form column ── */}
         <div className="settings-layout__form">
           <SettingsForm />
-          <div className="settings-page__divider" />
-          <div id="section-clients">
-            <ClientList />
-          </div>
         </div>
 
         {/* ── Sticky jump navigation ── */}

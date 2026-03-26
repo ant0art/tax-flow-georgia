@@ -57,6 +57,10 @@ export function AppLayout() {
           <Icon name="dollar-sign" size={18} />
           {!collapsed && <span className="app-nav__label">{t['nav_income']}</span>}
         </NavLink>
+        <NavLink to="/clients" className="app-nav__item" title={t['nav_clients']}>
+          <Icon name="users" size={18} />
+          {!collapsed && <span className="app-nav__label">{t['nav_clients']}</span>}
+        </NavLink>
         <NavLink to="/settings" className="app-nav__item" title={t['nav_settings']}>
           <Icon name="settings" size={18} />
           {!collapsed && <span className="app-nav__label">{t['nav_settings']}</span>}
