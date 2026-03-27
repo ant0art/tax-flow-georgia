@@ -237,7 +237,7 @@
   border: none;
   border-radius: 0;
   background: transparent;
-  padding: 0 4px;
+  padding: 4px;       /* equal padding on all sides so hover bg isn't clipped */
   gap: 2px;
   display: flex;
   flex-direction: row;

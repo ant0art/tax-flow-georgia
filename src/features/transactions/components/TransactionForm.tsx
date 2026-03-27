@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { transactionSchema, type TransactionFormData } from '@/entities/transaction/schemas';
@@ -16,6 +16,9 @@ import { ClientCombobox } from '@/features/clients/components/ClientCombobox';
 import { useT } from '@/shared/i18n/useT';
 import { useUIStore } from '@/shared/hooks/useTheme';
 import { Icon } from '@/shared/ui/Icon';
+import { FieldSelect } from '@/shared/ui/FieldSelect';
+import type { SelectOption } from '@/shared/ui/FieldSelect';
+import { FieldStepper } from '@/shared/ui/FieldStepper';
 import './TransactionForm.css';
 
 interface Props {
@@ -140,21 +143,36 @@ export function TransactionForm({ onDone, initial, rowIndex }: Props) {
     }
   };
 
-  // Unique descriptions from past transactions for datalist autocomplete
-  const pastDescriptions = [...new Set(
-    transactions
-      .map((tx) => tx.description)
-      .filter(Boolean)
-  )];
+  // Top-5 most-used descriptions from past transactions
+  const pastDescriptions = useMemo(() => {
+    const freq: Record<string, number> = {};
+    transactions.forEach((tx) => { if (tx.description) freq[tx.description] = (freq[tx.description] ?? 0) + 1; });
+    return Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([v]) => v);
+  }, [transactions]);
 
-  // Unique projects from past transactions for datalist autocomplete
-  const pastProjects = [...new Set(
-    transactions
-      .map((tx) => tx.project)
-      .filter(Boolean)
-  )];
+  // Top-5 most-used projects from past transactions
+  const pastProjects = useMemo(() => {
+    const freq: Record<string, number> = {};
+    transactions.forEach((tx) => { if (tx.project) freq[tx.project] = (freq[tx.project] ?? 0) + 1; });
+    return Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([v]) => v);
+  }, [transactions]);
 
   const unpaidInvoices = invoices.filter((i) => i.status !== 'paid');
+
+  // Build invoice link options for FieldSelect
+  const invoiceLinkOptions: SelectOption[] = [
+    { value: '', label: t['transaction_no_link'] },
+    ...unpaidInvoices.map((inv) => ({
+      value: inv.id,
+      label: `${inv.number} — ${inv.clientName} (${inv.currency} ${Number(inv.total).toFixed(2)})`,
+    })),
+    // In edit mode: if the linked invoice is already paid, still show it
+    ...(isEdit && initial?.invoiceId && !unpaidInvoices.find((i) => i.id === initial.invoiceId)
+      ? (invoices.find((i) => i.id === initial.invoiceId)
+          ? [{ value: initial.invoiceId, label: `${invoices.find((i) => i.id === initial.invoiceId)?.number} (paid)` }]
+          : [])
+      : []),
+  ];
 
   const onSubmit = async (data: TransactionFormData) => {
     try {
@@ -262,29 +280,16 @@ export function TransactionForm({ onDone, initial, rowIndex }: Props) {
 
       {/* Link to invoice */}
       <div className="field">
-        <label className="field__label" htmlFor="tx-invoice">{t['transaction_link_invoice']}</label>
-        <select
-          className="field__select"
+        <FieldSelect
+          label={t['transaction_link_invoice']}
           id="tx-invoice"
+          options={invoiceLinkOptions}
           value={watch('invoiceId')}
-          onChange={handleInvoiceSelect}
-        >
-          <option value="">{t['transaction_no_link']}</option>
-          {unpaidInvoices.map((inv) => (
-            <option key={inv.id} value={inv.id}>
-              {inv.number} — {inv.clientName} ({inv.currency} {Number(inv.total).toFixed(2)})
-            </option>
-          ))}
-          {/* If editing and there's a linked invoice that's now paid, still show it */}
-          {isEdit && initial?.invoiceId &&
-            !unpaidInvoices.find(i => i.id === initial.invoiceId) &&
-            invoices.find(i => i.id === initial.invoiceId) && (
-              <option value={initial.invoiceId}>
-                {invoices.find(i => i.id === initial.invoiceId)?.number} (paid)
-              </option>
-            )
-          }
-        </select>
+          onChange={(val) => {
+            // Reuse existing handler logic via synthetic select event
+            handleInvoiceSelect({ target: { value: val } } as React.ChangeEvent<HTMLSelectElement>);
+          }}
+        />
       </div>
 
       {/* Row 1a: Date + Client */}
@@ -326,27 +331,24 @@ export function TransactionForm({ onDone, initial, rowIndex }: Props) {
       <div className="transaction-form__grid transaction-form__grid--desc">
         {/* Left: Amount + Currency + NBG Rate */}
         <div className="transaction-form__amounts-inner">
-          <Input
+          <FieldStepper
             label={t['transaction_amount']}
-            type="number"
-            step="0.01"
+            step={0.01}
             mono
             error={errors.amountOriginal?.message}
             {...register('amountOriginal', { valueAsNumber: true })}
           />
-          <div className="field">
-            <label className="field__label" htmlFor="tx-currency">{t['transaction_currency']}</label>
-            <select className="field__select" id="tx-currency" {...register('currency')}>
-              {CURRENCIES.map((c) => (
-                <option key={c.code} value={c.code}>{currencyLabel(c)}</option>
-              ))}
-            </select>
-          </div>
+          <FieldSelect
+            label={t['transaction_currency']}
+            id="tx-currency"
+            options={CURRENCIES.map((c) => ({ value: c.code, label: currencyLabel(c) }))}
+            value={currency}
+            onChange={(val) => setValue('currency', val)}
+          />
           <div className="field-with-indicator">
-            <Input
+            <FieldStepper
               label={t['transaction_nbg_rate']}
-              type="number"
-              step="0.0001"
+              step={0.0001}
               mono
               hint={fetchingRate ? undefined : t['transaction_nbg_auto']}
               error={errors.nbgRate?.message}

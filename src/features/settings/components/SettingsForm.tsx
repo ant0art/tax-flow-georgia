@@ -9,6 +9,7 @@ import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
 import { useT } from '@/shared/i18n/useT';
 import { Icon } from '@/shared/ui/Icon';
+import { FieldSelect } from '@/shared/ui/FieldSelect';
 import { TaxPaymentDescription } from './TaxPaymentDescription';
 import './SettingsForm.css';
 
@@ -21,6 +22,7 @@ export function SettingsForm() {
     handleSubmit,
     reset,
     watch,
+    setValue,
     control,
     formState: { errors, isDirty },
   } = useForm<SettingsFormData>({
@@ -152,14 +154,13 @@ export function SettingsForm() {
         {/* Group 1: Currency + Tax rate */}
         <div className="settings-field-group">
           <div className="settings-grid settings-grid--wide-narrow">
-            <div className="field">
-              <label className="field__label" htmlFor="defaultCurrency">{t['settings_default_currency']}</label>
-              <select className="field__select" id="defaultCurrency" {...register('defaultCurrency')}>
-                {CURRENCIES.map((c) => (
-                  <option key={c.code} value={c.code}>{currencyLabel(c)}</option>
-                ))}
-              </select>
-            </div>
+            <FieldSelect
+              label={t['settings_default_currency']}
+              id="defaultCurrency"
+              options={CURRENCIES.map((c) => ({ value: c.code, label: currencyLabel(c) }))}
+              value={watchAll.defaultCurrency ?? 'USD'}
+              onChange={(val) => setValue('defaultCurrency', val as 'USD' | 'EUR' | 'GBP' | 'GEL')}
+            />
             <Input
               label={t['settings_tax_rate']}
               hint={t['settings_tax_rate_hint']}

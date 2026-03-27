@@ -5,6 +5,7 @@ import { CURRENCIES, currencyLabel } from '@/shared/lib/currencies';
 import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
 import { useT } from '@/shared/i18n/useT';
+import { FieldSelect } from '@/shared/ui/FieldSelect';
 import './ClientForm.css';
 
 interface ClientFormProps {
@@ -20,6 +21,8 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<ClientFormData>({
     resolver: zodResolver(clientSchema),
@@ -63,16 +66,13 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
           mono
           {...register('iban')}
         />
-        <div className="field">
-          <label className="field__label" htmlFor="client-currency">
-            {t['client_default_currency'] ?? 'Default currency'}
-          </label>
-          <select className="field__select" id="client-currency" {...register('defaultCurrency')}>
-            {CURRENCIES.map((c) => (
-              <option key={c.code} value={c.code}>{currencyLabel(c)}</option>
-            ))}
-          </select>
-        </div>
+        <FieldSelect
+          label={t['client_default_currency'] ?? 'Default currency'}
+          id="client-currency"
+          options={CURRENCIES.map((c) => ({ value: c.code, label: currencyLabel(c) }))}
+          value={watch('defaultCurrency') ?? 'USD'}
+          onChange={(val) => setValue('defaultCurrency', val as 'USD' | 'EUR' | 'GBP' | 'GEL')}
+        />
         <Input
           label={t['client_default_project'] ?? 'Default project'}
           hint={t['client_default_project_hint'] ?? 'For invoice autofill'}

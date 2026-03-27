@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { invoiceSchema, generateInvoiceNumber } from '@/entities/invoice/schemas';
@@ -17,6 +17,7 @@ import { Icon } from '@/shared/ui/Icon';
 import { ClientCombobox } from '@/features/clients/components/ClientCombobox';
 import { DatePicker } from '@/shared/ui/DatePicker';
 import './InvoiceForm.css';
+import { FieldSelect } from '@/shared/ui/FieldSelect';
 
 interface InvoiceFormProps {
   initial?: { invoice: InvoiceFormData; items: InvoiceItem[]; rowIndex: number };
@@ -33,9 +34,20 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
   const lang = useUIStore((s) => s.lang);
   const [createTransaction, setCreateTransaction] = useState(false);
 
-  // Autocomplete suggestions from past invoices
-  const pastProjects = [...new Set(invoices.map((inv) => inv.project).filter(Boolean))];
-  const pastDescriptions = [...new Set(allItems.map((it) => it.description).filter(Boolean))];
+  // Top-5 most-used projects from past invoices
+  const pastProjects = useMemo(() => {
+    const freq: Record<string, number> = {};
+    invoices.forEach((inv) => { if (inv.project) freq[inv.project] = (freq[inv.project] ?? 0) + 1; });
+    return Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([v]) => v);
+  }, [invoices]);
+
+  // Top-5 most-used descriptions from past invoice items
+  const pastDescriptions = useMemo(() => {
+    const freq: Record<string, number> = {};
+    allItems.forEach((it) => { if (it.description) freq[it.description] = (freq[it.description] ?? 0) + 1; });
+    return Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([v]) => v);
+  }, [allItems]);
+
 
   const today = new Date().toISOString().split('T')[0];
   const defaultDue = new Date(Date.now() + 10 * 86400000).toISOString().split('T')[0];
@@ -300,14 +312,13 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
               error={errors.dueDate?.message}
               locale={lang}
             />
-            <div className="field">
-              <label className="field__label" htmlFor="inv-currency">{t['invoice_currency']}</label>
-              <select className="field__select" id="inv-currency" {...register('currency')}>
-                {CURRENCIES.map((c) => (
-                  <option key={c.code} value={c.code}>{currencyLabel(c)}</option>
-                ))}
-              </select>
-            </div>
+            <FieldSelect
+              label={t['invoice_currency']}
+              id="inv-currency"
+              options={CURRENCIES.map((c) => ({ value: c.code, label: currencyLabel(c) }))}
+              value={watch('currency')}
+              onChange={(val) => setValue('currency', val)}
+            />
           </div>
         </div>
 

@@ -8,9 +8,10 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 8px 12px;
-  min-height: 38px;
-  background: var(--color-surface);
+  height: 32px;                          /* canonical 32px — matches field__input */
+  padding: 0 var(--space-3);
+  box-sizing: border-box;
+  background: var(--color-surface-inset);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   cursor: pointer;
@@ -23,7 +24,7 @@
 
 .combobox__trigger--open {
   border-color: var(--color-border-focus);
-  box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.15);
+  box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-border-focus);
 }
 
 .combobox__display {
