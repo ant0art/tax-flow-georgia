@@ -7,7 +7,7 @@
   border-radius: var(--radius-lg);
   padding: var(--space-4) var(--space-5);
   box-shadow: var(--shadow-1);
-  max-width: 900px;
+  max-width: 960px;
 }
 
 .transaction-form__title {
@@ -48,7 +48,7 @@
   .transaction-form__amounts-inner { grid-template-columns: 1fr 1fr; }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 960px) {
   .transaction-form__amounts { grid-template-columns: 1fr 1fr; }
 }
 

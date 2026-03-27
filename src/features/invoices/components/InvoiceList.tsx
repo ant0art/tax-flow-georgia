@@ -24,6 +24,15 @@ const STATUS_OPTIONS = [
   { value: 'overdue', labelKey: 'status_overdue' },
 ];
 
+const SORT_OPTIONS = [
+  { value: 'date_desc',   label: 'Date ↓' },
+  { value: 'date_asc',    label: 'Date ↑' },
+  { value: 'amount_desc', label: 'Amount ↓' },
+  { value: 'amount_asc',  label: 'Amount ↑' },
+  { value: 'client_asc',  label: 'Client A→Z' },
+  { value: 'client_desc', label: 'Client Z→A' },
+];
+
 // ── Custom status picker ──
 interface StatusPickerProps {
   status: string;
@@ -37,7 +46,6 @@ function StatusPicker({ status, disabled, onChange }: StatusPickerProps) {
   const t = useT();
   const info = STATUS_ICONS[status] ?? STATUS_ICONS.draft;
 
-  // Close on outside click
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
@@ -97,13 +105,69 @@ export function InvoiceList() {
   const t = useT();
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState<{ invoice: InvoiceFormData; items: InvoiceItem[]; rowIndex: number } | null>(null);
-  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [changingStatusId, setChangingStatusId] = useState<string | null>(null);
 
-  const filtered = useMemo(
-    () => statusFilter === 'all' ? invoices : invoices.filter((inv) => inv.status === statusFilter),
-    [invoices, statusFilter]
-  );
+  // ── Filters ──
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [clientFilter, setClientFilter] = useState('');
+  const [amountMin, setAmountMin] = useState('');
+  const [amountMax, setAmountMax] = useState('');
+  const [sortBy, setSortBy] = useState('date_desc');
+
+  // Unique client list from all invoices
+  const clientOptions = useMemo(() => {
+    const names = Array.from(new Set(invoices.map((inv) => inv.clientName).filter(Boolean)));
+    return names.sort((a, b) => a.localeCompare(b));
+  }, [invoices]);
+
+  const hasActiveFilters = statusFilter !== 'all' || dateFrom || dateTo || clientFilter || amountMin || amountMax || sortBy !== 'date_desc';
+
+  const resetFilters = () => {
+    setStatusFilter('all');
+    setDateFrom('');
+    setDateTo('');
+    setClientFilter('');
+    setAmountMin('');
+    setAmountMax('');
+    setSortBy('date_desc');
+  };
+
+  // ── Filtering + sorting pipeline ──
+  const filtered = useMemo(() => {
+    let result = invoices;
+
+    // 1. Status
+    if (statusFilter !== 'all') {
+      result = result.filter((inv) => inv.status === statusFilter);
+    }
+
+    // 2. Date range (by invoice date)
+    if (dateFrom) result = result.filter((inv) => inv.date >= dateFrom);
+    if (dateTo)   result = result.filter((inv) => inv.date <= dateTo);
+
+    // 3. Client
+    if (clientFilter) result = result.filter((inv) => inv.clientName === clientFilter);
+
+    // 4. Amount range (native currency total)
+    const minAmt = amountMin ? parseFloat(amountMin) : null;
+    const maxAmt = amountMax ? parseFloat(amountMax) : null;
+    if (minAmt !== null) result = result.filter((inv) => inv.total >= minAmt);
+    if (maxAmt !== null) result = result.filter((inv) => inv.total <= maxAmt);
+
+    // 5. Sort
+    const sorted = [...result];
+    switch (sortBy) {
+      case 'date_asc':    sorted.sort((a, b) => a.date.localeCompare(b.date)); break;
+      case 'date_desc':   sorted.sort((a, b) => b.date.localeCompare(a.date)); break;
+      case 'amount_asc':  sorted.sort((a, b) => a.total - b.total); break;
+      case 'amount_desc': sorted.sort((a, b) => b.total - a.total); break;
+      case 'client_asc':  sorted.sort((a, b) => a.clientName.localeCompare(b.clientName)); break;
+      case 'client_desc': sorted.sort((a, b) => b.clientName.localeCompare(a.clientName)); break;
+    }
+    return sorted;
+  }, [invoices, statusFilter, dateFrom, dateTo, clientFilter, amountMin, amountMax, sortBy]);
 
   const handleCopy = async (inv: InvoiceFormData) => {
     const newId = crypto.randomUUID();
@@ -164,7 +228,11 @@ export function InvoiceList() {
         <h1 className="page-title">
           <Icon name="file-text" size={22} />
           {t['invoices_title']}
-          <span className="page-title__count">{invoices.length}</span>
+          <span className="page-title__count">
+            {filtered.length !== invoices.length
+              ? `${filtered.length} / ${invoices.length}`
+              : invoices.length}
+          </span>
         </h1>
         <Button size="sm" onClick={() => setShowForm(true)} title={t['invoice_new']}>{t['invoice_create']}</Button>
       </div>
@@ -185,11 +253,103 @@ export function InvoiceList() {
         ))}
       </div>
 
+      {/* Extra filters + sort */}
+      <div className="invoice-list__extra-filters">
+        {/* Date range */}
+        <div className="inv-filter-group">
+          <label className="inv-filter-label">From</label>
+          <input
+            type="date"
+            className="inv-filter-input"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            max={dateTo || undefined}
+          />
+        </div>
+        <div className="inv-filter-group">
+          <label className="inv-filter-label">To</label>
+          <input
+            type="date"
+            className="inv-filter-input"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            min={dateFrom || undefined}
+          />
+        </div>
+
+        <div className="inv-filter-sep" />
+
+        {/* Client */}
+        <div className="inv-filter-group">
+          <label className="inv-filter-label">Client</label>
+          <select
+            className="inv-filter-input inv-filter-input--select"
+            value={clientFilter}
+            onChange={(e) => setClientFilter(e.target.value)}
+          >
+            <option value="">All clients</option>
+            {clientOptions.map((name) => (
+              <option key={name} value={name}>{name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="inv-filter-sep" />
+
+        {/* Amount range */}
+        <div className="inv-filter-group">
+          <label className="inv-filter-label">Min</label>
+          <input
+            type="number"
+            className="inv-filter-input inv-filter-input--num"
+            value={amountMin}
+            onChange={(e) => setAmountMin(e.target.value)}
+            placeholder="0"
+            min={0}
+          />
+        </div>
+        <div className="inv-filter-group">
+          <label className="inv-filter-label">Max</label>
+          <input
+            type="number"
+            className="inv-filter-input inv-filter-input--num"
+            value={amountMax}
+            onChange={(e) => setAmountMax(e.target.value)}
+            placeholder="∞"
+            min={0}
+          />
+        </div>
+
+        <div className="inv-filter-sep" />
+
+        {/* Sort */}
+        <div className="inv-filter-group">
+          <label className="inv-filter-label">Sort</label>
+          <select
+            className="inv-filter-input inv-filter-input--select"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+          >
+            {SORT_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Reset */}
+        {hasActiveFilters && (
+          <button className="inv-filter-reset" onClick={resetFilters} title="Reset all filters">
+            <Icon name="x" size={13} />
+            Reset
+          </button>
+        )}
+      </div>
+
       {filtered.length === 0 ? (
         <div className="invoice-list__empty">
           <Icon name="file-text" size={32} className="empty-icon" />
-          <p>{statusFilter === 'all' ? t['invoice_empty'] : t['invoice_empty_filter']}</p>
-          {statusFilter === 'all' && (
+          <p>{statusFilter === 'all' && !hasActiveFilters ? t['invoice_empty'] : t['invoice_empty_filter']}</p>
+          {statusFilter === 'all' && !hasActiveFilters && (
             <p className="empty-hint">{t['invoice_empty_hint']}</p>
           )}
         </div>

@@ -1,0 +1,112 @@
+/*
+  Architecture:
+  .dash-widget           = outer hover zone (padding-top creates space for controls)
+  .dash-widget__controls = sits inside the padding-top area → always reachable on hover
+  .dash-widget__content  = the visible card (background, border, radius)
+*/
+
+.dash-widget {
+  /* padding-top carves out space for the controls bar WITHOUT the card background */
+  padding-top: 34px;
+  min-width: 0;
+  /* Stretch to full row height so we can propagate height:100% to children */
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Drag states ── */
+.dash-widget--dragging {
+  opacity: 0.45;
+  cursor: grabbing;
+}
+
+.dash-widget--drop-target .dash-widget__content {
+  outline: 2px dashed var(--color-primary);
+  outline-offset: 2px;
+  background: color-mix(in srgb, var(--color-primary) 4%, var(--color-surface));
+}
+
+/* ── Controls bar — inside padding-top area, always reachable on hover ── */
+.dash-widget__controls {
+  position: absolute;
+  top: 4px;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-fast);
+}
+
+.dash-widget:hover .dash-widget__controls {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── drag handle ── */
+.dash-widget__drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-tertiary);
+  cursor: grab;
+  box-shadow: var(--shadow-2);
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--duration-fast), background var(--duration-fast);
+}
+
+.dash-widget__drag-handle:hover { color: var(--color-text); background: var(--color-surface-hover); }
+.dash-widget__drag-handle:active { cursor: grabbing; }
+
+/* ── Control buttons ── */
+.dash-widget__ctrl-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 9px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  box-shadow: var(--shadow-2);
+  font-size: 11px;
+  font-weight: 500;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--duration-fast), background var(--duration-fast), border-color var(--duration-fast);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.dash-widget__ctrl-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+.dash-widget__ctrl-btn:hover { color: var(--color-text); background: var(--color-surface-hover); }
+.dash-widget__ctrl-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.dash-widget__ctrl-btn--active {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface-raised));
+}
+.dash-widget__ctrl-btn--active:hover {
+  background: color-mix(in srgb, var(--color-primary) 16%, var(--color-surface-raised));
+}
+
+/* ── Content — the actual visible card, fills remaining height ── */
+.dash-widget__content {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}

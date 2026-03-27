@@ -9,6 +9,7 @@ import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
 import { useT } from '@/shared/i18n/useT';
 import { Icon } from '@/shared/ui/Icon';
+import { TaxPaymentDescription } from './TaxPaymentDescription';
 import './SettingsForm.css';
 
 export function SettingsForm() {
@@ -74,6 +75,8 @@ export function SettingsForm() {
             />
           </div>
         </div>
+        {/* Tax payment description block */}
+        <TaxPaymentDescription tin={watchAll.tin} />
         {/* Group 2: Contacts */}
         <div className="settings-field-group">
           <div className="settings-grid settings-grid--single">

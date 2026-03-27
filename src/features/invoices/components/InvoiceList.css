@@ -13,13 +13,103 @@
 
 .invoice-list__header h1 { font: var(--text-h1); }
 
-/* Filters */
+/* Status filter chips */
 .invoice-list__filters {
   display: flex;
   gap: var(--space-2);
   flex-wrap: wrap;
   max-width: 960px;
 }
+
+/* Extra filters + sort row */
+.invoice-list__extra-filters {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  max-width: 960px;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-inset);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.inv-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.inv-filter-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.inv-filter-input {
+  height: 30px;
+  padding: 0 var(--space-2);
+  font: var(--text-small);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: border-color var(--duration-fast);
+  outline: none;
+}
+
+.inv-filter-input:focus {
+  border-color: var(--color-border-focus);
+}
+
+.inv-filter-input--select {
+  padding: 0 24px 0 var(--space-2);
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888070' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  cursor: pointer;
+}
+
+.inv-filter-input--num {
+  width: 80px;
+}
+
+.inv-filter-sep {
+  width: 1px;
+  height: 30px;
+  background: var(--color-border);
+  margin: 0 var(--space-1);
+  align-self: flex-end;
+}
+
+.inv-filter-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 30px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-md);
+  font: var(--text-small);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: color var(--duration-fast), background var(--duration-fast),
+              border-color var(--duration-fast);
+  align-self: flex-end;
+}
+
+.inv-filter-reset:hover {
+  color: var(--color-error);
+  border-color: var(--color-error);
+  background: rgba(239, 83, 80, 0.06);
+}
+
 
 .filter-chip {
   padding: var(--space-1) var(--space-3);

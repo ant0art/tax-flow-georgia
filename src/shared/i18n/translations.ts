@@ -23,6 +23,23 @@ export const translations = {
     dashboard_no_data: 'No data for {year}. Add transactions to see the chart.',
     dashboard_tooltip_income: 'Income',
     dashboard_tooltip_tax: 'Tax',
+    dashboard_recent_tx: 'Recent Transactions',
+    dashboard_recent_tx_empty: 'No transactions yet',
+    dashboard_view_all: 'View all',
+    dashboard_reset_layout: 'Reset layout',
+    // Quick Links
+    ql_title: 'Quick Links',
+    ql_nbg: 'NBG Exchange Rate',
+    ql_nbg_hint: 'Official National Bank of Georgia rate',
+    ql_cabinet: 'Taxpayer Cabinet',
+    ql_cabinet_hint: 'rs.ge — file declarations',
+    ql_declaration_guide: 'Declaration Guide',
+    ql_declaration_guide_hint: 'Small Business status — step-by-step',
+    // Tax payment description
+    tax_payment_desc_label: 'Tax Payment Description',
+    tax_payment_desc_hint: 'Copy this text to the «Description» field when paying via mobile app or online banking',
+    tax_payment_desc_copy: 'Copy',
+    tax_payment_desc_copied: 'Copied!',
 
     // Months
     month_jan: 'Jan', month_feb: 'Feb', month_mar: 'Mar', month_apr: 'Apr',
@@ -222,6 +239,23 @@ export const translations = {
     dashboard_no_data: 'Данных за {year} год пока нет. Добавьте транзакции, чтобы увидеть график.',
     dashboard_tooltip_income: 'Доход',
     dashboard_tooltip_tax: 'Налог',
+    dashboard_recent_tx: 'Последние поступления',
+    dashboard_recent_tx_empty: 'Транзакций пока нет',
+    dashboard_view_all: 'Все',
+    dashboard_reset_layout: 'Сбросить раскладку',
+    // Quick Links
+    ql_title: 'Быстрые ссылки',
+    ql_nbg: 'Курс НБГ',
+    ql_nbg_hint: 'Официальный курс Нацбанка Грузии',
+    ql_cabinet: 'Кабинет налогоплательщика',
+    ql_cabinet_hint: 'rs.ge — подача деклараций',
+    ql_declaration_guide: 'Инструкция по декларации',
+    ql_declaration_guide_hint: 'Статус «Малый бизнес» — пошагово',
+    // Tax payment description
+    tax_payment_desc_label: 'Описание платежа налога',
+    tax_payment_desc_hint: 'Скопируйте этот текст в поле «Описание» при оплате через мобильное приложение или интернет-банк',
+    tax_payment_desc_copy: 'Скопировать',
+    tax_payment_desc_copied: 'Скопировано!',
 
     // Months
     month_jan: 'Янв', month_feb: 'Фев', month_mar: 'Мар', month_apr: 'Апр',

@@ -23,7 +23,30 @@ export function TransactionList() {
   const [monthFilter, setMonthFilter] = useState<string>('all');
   const [clientFilter, setClientFilter] = useState<string>('all');
   const [currencyFilter, setCurrencyFilter] = useState<string>('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [amountMin, setAmountMin] = useState('');
+  const [amountMax, setAmountMax] = useState('');
   const [sort, setSort] = useState<SortKey>('date-desc');
+
+  const hasActiveFilters =
+    yearFilter !== 'all' || monthFilter !== 'all' ||
+    clientFilter !== 'all' || currencyFilter !== 'all' ||
+    dateFrom !== '' || dateTo !== '' ||
+    amountMin !== '' || amountMax !== '' ||
+    sort !== 'date-desc';
+
+  const resetFilters = () => {
+    setYearFilter('all');
+    setMonthFilter('all');
+    setClientFilter('all');
+    setCurrencyFilter('all');
+    setDateFrom('');
+    setDateTo('');
+    setAmountMin('');
+    setAmountMax('');
+    setSort('date-desc');
+  };
 
   // ── Option lists ──
   const years = useMemo(() => {
@@ -43,6 +66,12 @@ export function TransactionList() {
     if (monthFilter !== 'all') list = list.filter((tx) => new Date(tx.date).getMonth().toString() === monthFilter);
     if (clientFilter !== 'all') list = list.filter((tx) => tx.clientName === clientFilter);
     if (currencyFilter !== 'all') list = list.filter((tx) => tx.currency === currencyFilter);
+    if (dateFrom) list = list.filter((tx) => tx.date >= dateFrom);
+    if (dateTo)   list = list.filter((tx) => tx.date <= dateTo);
+    const minAmt = amountMin ? parseFloat(amountMin) : null;
+    const maxAmt = amountMax ? parseFloat(amountMax) : null;
+    if (minAmt !== null) list = list.filter((tx) => tx.amountGEL >= minAmt);
+    if (maxAmt !== null) list = list.filter((tx) => tx.amountGEL <= maxAmt);
 
     list.sort((a, b) => {
       switch (sort) {
@@ -53,7 +82,7 @@ export function TransactionList() {
       }
     });
     return list;
-  }, [transactions, yearFilter, monthFilter, clientFilter, currencyFilter, sort]);
+  }, [transactions, yearFilter, monthFilter, clientFilter, currencyFilter, dateFrom, dateTo, amountMin, amountMax, sort]);
 
   // ── Stats from FILTERED data ──
   const stats = useMemo(() => ({
@@ -84,7 +113,11 @@ export function TransactionList() {
         <h1 className="page-title">
           <Icon name="dollar-sign" size={22} />
           {t['transactions_title']}
-          <span className="page-title__count">{stats.count}</span>
+          <span className="page-title__count">
+            {filtered.length !== transactions.length
+              ? `${filtered.length} / ${transactions.length}`
+              : transactions.length}
+          </span>
         </h1>
         {!showForm && (
           <Button size="sm" onClick={() => setShowForm(true)}>
@@ -92,6 +125,7 @@ export function TransactionList() {
           </Button>
         )}
       </div>
+
 
       {/* New transaction form (inline) */}
       {showForm && <TransactionForm onDone={() => setShowForm(false)} />}
@@ -147,6 +181,46 @@ export function TransactionList() {
 
           <div className="tx-filter-sep" />
 
+          <input
+            type="date"
+            className="tx-filter-date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            title="From date"
+            max={dateTo || undefined}
+          />
+          <input
+            type="date"
+            className="tx-filter-date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            title="To date"
+            min={dateFrom || undefined}
+          />
+
+          <div className="tx-filter-sep" />
+
+          <input
+            type="number"
+            className="tx-filter-num"
+            value={amountMin}
+            onChange={(e) => setAmountMin(e.target.value)}
+            placeholder="Min ₾"
+            min={0}
+            title="Min amount (GEL)"
+          />
+          <input
+            type="number"
+            className="tx-filter-num"
+            value={amountMax}
+            onChange={(e) => setAmountMax(e.target.value)}
+            placeholder="Max ₾"
+            min={0}
+            title="Max amount (GEL)"
+          />
+
+          <div className="tx-filter-sep" />
+
           <select
             className="tx-filter-select"
             value={sort}
@@ -158,6 +232,13 @@ export function TransactionList() {
             <option value="amount-desc">Amount ↓</option>
             <option value="amount-asc">Amount ↑</option>
           </select>
+
+          {hasActiveFilters && (
+            <button className="tx-filter-reset" onClick={resetFilters} title="Reset all filters">
+              <Icon name="x" size={13} />
+              Reset
+            </button>
+          )}
         </div>
       )}
 

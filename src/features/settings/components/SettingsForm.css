@@ -109,3 +109,80 @@
   color: var(--color-error);
   background: rgba(184, 58, 45, 0.08);
 }
+
+/* ── Tax payment description ── */
+.tax-pay-desc {
+  margin: var(--space-4) 0 var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  background: color-mix(in srgb, var(--color-primary) 6%, var(--color-surface-inset));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, var(--color-border));
+  border-radius: var(--radius-md);
+}
+
+.tax-pay-desc__label-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: var(--space-2);
+}
+
+.tax-pay-desc__label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary);
+}
+
+.tax-pay-desc__hint {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+
+.tax-pay-desc__box {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+}
+
+.tax-pay-desc__text {
+  flex: 1;
+  font-family: var(--font-mono, 'Menlo', 'Monaco', 'Consolas', monospace);
+  font-size: 13px;
+  color: var(--color-text);
+  word-break: break-all;
+  user-select: all;
+}
+
+.tax-pay-desc__copy {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background var(--duration-fast), color var(--duration-fast), border-color var(--duration-fast);
+}
+
+.tax-pay-desc__copy:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.tax-pay-desc__copy--done {
+  color: var(--color-success);
+  border-color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 8%, var(--color-surface));
+}
+
