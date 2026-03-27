@@ -168,18 +168,10 @@ export function TransactionForm({ onDone, initial, rowIndex }: Props) {
           }
         }
       } else {
-        await addTransaction(data);
+        // ─── Auto-create linked invoice FIRST so we can link the transaction back ───
+        let linkedInvId = data.invoiceId;
+        let linkedInvNumber = data.invoiceNumber;
 
-        // ─── If a pre-existing invoice was linked, mark it paid ───
-        if (data.invoiceId && !createInvoice) {
-          const inv = invoices.find((i) => i.id === data.invoiceId);
-          if (inv && inv.status !== 'paid') {
-            const invRowIndex = invoices.findIndex((i) => i.id === data.invoiceId) + 2;
-            await changeStatus({ id: data.invoiceId, rowIndex: invRowIndex, status: 'paid' });
-          }
-        }
-
-        // ─── Auto-create linked invoice if checkbox is set ───
         if (createInvoice) {
           const invId = crypto.randomUUID();
           const existingNumbers = invoices.map((i) => i.number);
@@ -227,6 +219,20 @@ export function TransactionForm({ onDone, initial, rowIndex }: Props) {
             ],
             isNew: true,
           });
+          linkedInvId = invId;
+          linkedInvNumber = invNumber;
+        }
+
+        // ─── Add transaction (with invoice link if applicable) ───
+        await addTransaction({ ...data, invoiceId: linkedInvId, invoiceNumber: linkedInvNumber });
+
+        // ─── If a pre-existing invoice was linked, mark it paid ───
+        if (data.invoiceId && !createInvoice) {
+          const inv = invoices.find((i) => i.id === data.invoiceId);
+          if (inv && inv.status !== 'paid') {
+            const invRowIndex = invoices.findIndex((i) => i.id === data.invoiceId) + 2;
+            await changeStatus({ id: data.invoiceId, rowIndex: invRowIndex, status: 'paid' });
+          }
         }
       }
       onDone();
