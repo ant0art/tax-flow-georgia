@@ -94,6 +94,10 @@ export const translations = {
     transaction_tax: 'Tax',
     transaction_submit: 'Add',
     transaction_cancel: 'Cancel',
+    transaction_create_invoice: 'Also create a draft invoice',
+    transaction_invoice_created: 'Invoice created',
+    invoice_create_transaction: 'Also create a transaction',
+    invoice_transaction_created: 'Transaction created',
 
     // Clients
     clients_title: 'Clients',
@@ -289,6 +293,10 @@ export const translations = {
     transaction_tax: 'Налог',
     transaction_submit: 'Добавить',
     transaction_cancel: 'Отмена',
+    transaction_create_invoice: 'Создать черновик инвойса',
+    transaction_invoice_created: 'Инвойс создан',
+    invoice_create_transaction: 'Создать поступление',
+    invoice_transaction_created: 'Поступление создано',
 
     // Clients
     clients_title: 'Клиенты',

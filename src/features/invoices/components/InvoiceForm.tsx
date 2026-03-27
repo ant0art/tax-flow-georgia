@@ -4,8 +4,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { invoiceSchema, generateInvoiceNumber } from '@/entities/invoice/schemas';
 import type { InvoiceFormData, InvoiceItem } from '@/entities/invoice/schemas';
 import { useInvoices } from '@/features/invoices/hooks/useInvoices';
+import { useTransactions } from '@/features/transactions/hooks/useTransactions';
 import { useClients } from '@/features/clients/hooks/useClients';
 import { useSettings } from '@/features/settings/hooks/useSettings';
+import { fetchNBGRate } from '@/shared/api/nbg-rate';
 import { CURRENCIES, currencyLabel } from '@/shared/lib/currencies';
 import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
@@ -22,10 +24,16 @@ interface InvoiceFormProps {
 
 export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
   const isEdit = !!initial;
-  const { invoices, saveInvoice, isSaving } = useInvoices();
+  const { invoices, items: allItems, saveInvoice, isSaving } = useInvoices();
+  const { addTransaction } = useTransactions();
   const { clients } = useClients();
   const { settings } = useSettings();
   const t = useT();
+  const [createTransaction, setCreateTransaction] = useState(false);
+
+  // Autocomplete suggestions from past invoices
+  const pastProjects = [...new Set(invoices.map((inv) => inv.project).filter(Boolean))];
+  const pastDescriptions = [...new Set(allItems.map((it) => it.description).filter(Boolean))];
 
   const today = new Date().toISOString().split('T')[0];
   const defaultDue = new Date(Date.now() + 10 * 86400000).toISOString().split('T')[0];
@@ -199,12 +207,43 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
   };
 
   const onSubmit = async (data: InvoiceFormData) => {
+    // If creating invoice AND immediately creating a transaction, mark invoice as paid
+    const invoiceStatus = (!isEdit && createTransaction) ? 'paid' : data.status;
     await saveInvoice({
-      invoice: data,
+      invoice: { ...data, status: invoiceStatus },
       items,
       isNew: !isEdit,
       invoiceRowIndex: initial?.rowIndex,
     });
+
+    // ─── Auto-create linked transaction if checkbox is set ───
+    if (!isEdit && createTransaction) {
+      const today = data.date;
+      let nbgRate = 1;
+      if (data.currency !== 'GEL') {
+        nbgRate = (await fetchNBGRate(data.currency, today)) || 1;
+      }
+      const amountGEL = Math.round(data.total * nbgRate * 100) / 100;
+      const taxRate = settings?.taxRate ?? 0.01;
+      await addTransaction({
+        id: crypto.randomUUID(),
+        date: today,
+        invoiceId: data.id,
+        invoiceNumber: data.number,
+        clientName: data.clientName,
+        description: `Payment for invoice ${data.number}`,
+        amountOriginal: data.total,
+        currency: data.currency,
+        nbgRate,
+        amountGEL,
+        taxRate,
+        taxAmount: Math.round(amountGEL * taxRate * 100) / 100,
+        project: data.project,
+        createdAt: '',
+        updatedAt: '',
+      });
+    }
+
     onDone();
   };
 
@@ -218,6 +257,13 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
 
   return (
     <form className="invoice-form" onSubmit={handleSubmit(onSubmit)}>
+      {/* Suggestion datalists */}
+      <datalist id="inv-project-list">
+        {pastProjects.map((p) => <option key={p} value={p} />)}
+      </datalist>
+      <datalist id="inv-desc-list">
+        {pastDescriptions.map((d) => <option key={d} value={d} />)}
+      </datalist>
 
       {/* ── Section 1: Invoice details ── */}
       <section className="invoice-form__section">
@@ -270,7 +316,12 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
               onChange={handleClientSelect}
               error={errors.clientName?.message}
             />
-            <Input label={t['invoice_project']} {...register('project')} />
+            <Input
+              label={t['invoice_project']}
+              list="inv-project-list"
+              autoComplete="off"
+              {...register('project')}
+            />
             {showEntitySelector && (
               <div className="field">
                 <label className="field__label" htmlFor="inv-entity">
@@ -314,6 +365,8 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
               <input
                 className="field__input"
                 placeholder={t['invoice_desc']}
+                list="inv-desc-list"
+                autoComplete="off"
                 value={item.description}
                 onChange={(e) => updateItem(idx, 'description', e.target.value)}
               />
@@ -428,6 +481,20 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
           </div>
         </div>
       </section>
+
+      {/* Create transaction shortcut — only in Add mode */}
+      {!isEdit && (
+        <label className="create-linked">
+          <input
+            type="checkbox"
+            className="create-linked__checkbox"
+            checked={createTransaction}
+            onChange={(e) => setCreateTransaction(e.target.checked)}
+          />
+          <Icon name="dollar-sign" size={13} className="create-linked__icon" />
+          <span>{t['invoice_create_transaction']}</span>
+        </label>
+      )}
 
       <div className="invoice-form__actions">
         <Button type="submit" loading={isSaving}>

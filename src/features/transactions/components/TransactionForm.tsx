@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { transactionSchema, type TransactionFormData } from '@/entities/transaction/schemas';
 import { useTransactions } from '@/features/transactions/hooks/useTransactions';
 import { useInvoices } from '@/features/invoices/hooks/useInvoices';
+import { generateInvoiceNumber } from '@/entities/invoice/schemas';
 import { useClients } from '@/features/clients/hooks/useClients';
 import { useSettings } from '@/features/settings/hooks/useSettings';
 import { fetchNBGRate } from '@/shared/api/nbg-rate';
@@ -24,11 +25,12 @@ interface Props {
 
 export function TransactionForm({ onDone, initial, rowIndex }: Props) {
   const { addTransaction, updateTransaction, transactions } = useTransactions();
-  const { invoices } = useInvoices();
+  const { invoices, saveInvoice, changeStatus } = useInvoices();
   const { clients, isLoading: clientsLoading } = useClients();
   const { settings } = useSettings();
   const [fetchingRate, setFetchingRate] = useState(false);
   const [clientId, setClientId] = useState('');
+  const [createInvoice, setCreateInvoice] = useState(false);
   const t = useT();
 
   const isEdit = !!initial && rowIndex !== undefined;
@@ -156,12 +158,80 @@ export function TransactionForm({ onDone, initial, rowIndex }: Props) {
     try {
       if (isEdit) {
         await updateTransaction({ data, rowIndex: rowIndex! });
+
+        // ─── If editing and an invoice is linked, mark it paid ───
+        if (data.invoiceId) {
+          const inv = invoices.find((i) => i.id === data.invoiceId);
+          if (inv && inv.status !== 'paid') {
+            const invRowIndex = invoices.findIndex((i) => i.id === data.invoiceId) + 2;
+            await changeStatus({ id: data.invoiceId, rowIndex: invRowIndex, status: 'paid' });
+          }
+        }
       } else {
         await addTransaction(data);
+
+        // ─── If a pre-existing invoice was linked, mark it paid ───
+        if (data.invoiceId && !createInvoice) {
+          const inv = invoices.find((i) => i.id === data.invoiceId);
+          if (inv && inv.status !== 'paid') {
+            const invRowIndex = invoices.findIndex((i) => i.id === data.invoiceId) + 2;
+            await changeStatus({ id: data.invoiceId, rowIndex: invRowIndex, status: 'paid' });
+          }
+        }
+
+        // ─── Auto-create linked invoice if checkbox is set ───
+        if (createInvoice) {
+          const invId = crypto.randomUUID();
+          const existingNumbers = invoices.map((i) => i.number);
+          const invDate = data.date; // invoice date = transaction (payment) date
+          const dueDate = (() => {
+            try {
+              const d = new Date(invDate);
+              d.setDate(d.getDate() + 10);
+              return d.toISOString().split('T')[0];
+            } catch {
+              return invDate;
+            }
+          })();
+          const invNumber = generateInvoiceNumber(invDate, existingNumbers, settings?.invoicePrefix);
+          await saveInvoice({
+            invoice: {
+              id: invId,
+              number: invNumber,
+              clientId: clientId,
+              clientName: data.clientName,
+              date: invDate,
+              dueDate,
+              currency: data.currency,
+              subtotal: data.amountOriginal,
+              vatText: settings?.vatText ?? 'Zero rated',
+              vatAmount: 0,
+              total: data.amountOriginal,
+              project: data.project,
+              status: 'paid', // payment already received
+              linkedTransactionId: data.id,
+              notes: '',
+              businessEntityId: '',
+              createdAt: '',
+              updatedAt: '',
+            },
+            items: [
+              {
+                id: crypto.randomUUID(),
+                invoiceId: invId,
+                description: data.description || 'Payment',
+                quantity: 1,
+                unitPrice: data.amountOriginal,
+                total: data.amountOriginal,
+              },
+            ],
+            isNew: true,
+          });
+        }
       }
       onDone();
     } catch {
-      // Error toast is shown by onError in useTransactions — just stay on the form
+      // Error toast is shown by onError in useTransactions/useInvoices — stay on form
     }
   };
 
@@ -293,6 +363,20 @@ export function TransactionForm({ onDone, initial, rowIndex }: Props) {
           </div>
         </div>
       </div>
+
+      {/* Create invoice shortcut — only in Add mode, only without a linked invoice */}
+      {!isEdit && !watch('invoiceId') && (
+        <label className="create-linked">
+          <input
+            type="checkbox"
+            className="create-linked__checkbox"
+            checked={createInvoice}
+            onChange={(e) => setCreateInvoice(e.target.checked)}
+          />
+          <Icon name="file-text" size={13} className="create-linked__icon" />
+          <span>{t['transaction_create_invoice']}</span>
+        </label>
+      )}
 
       <div className="transaction-form__actions">
         <Button type="submit" loading={isSubmitting}>
