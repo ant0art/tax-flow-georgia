@@ -217,6 +217,8 @@ export const translations = {
     pdf_col_total: 'Total',
     pdf_subtotal: 'Subtotal',
     pdf_vat: 'VAT',
+    pdf_vat_zero: 'Zero rated',
+    pdf_adjustments: 'Adjustments',
     pdf_grand_total: 'Total',
 
     // Loading
@@ -468,6 +470,8 @@ export const translations = {
     pdf_col_total: 'Итого',
     pdf_subtotal: 'Subtotal',
     pdf_vat: 'НДС',
+    pdf_vat_zero: 'Не облагается',
+    pdf_adjustments: 'Корректировки',
     pdf_grand_total: 'Итого',
 
     // Loading

@@ -474,13 +474,17 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
           </div>
           {items.map((item, idx) => (
             <div key={item.id} className="items-table__row">
-              <input
-                className="field__input"
+              <textarea
+                className="items-table__desc"
                 placeholder={t['invoice_desc']}
-                list="inv-desc-list"
                 autoComplete="off"
+                rows={1}
                 value={item.description}
                 onChange={(e) => updateItem(idx, 'description', e.target.value)}
+                onKeyDown={(e) => {
+                  // Prevent form submit on Enter; Shift+Enter also just inserts newline
+                  if (e.key === 'Enter' && !e.shiftKey) e.preventDefault();
+                }}
               />
               <div className="qty-stepper">
                 <input

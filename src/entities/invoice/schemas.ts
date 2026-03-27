@@ -41,7 +41,8 @@ export const INVOICE_FIELDS: (keyof InvoiceFormData)[] = [
   'id', 'number', 'clientId', 'clientName', 'date', 'dueDate',
   'currency', 'subtotal', 'vatText', 'vatAmount', 'total',
   'project', 'status', 'linkedTransactionId', 'notes',
-  'businessEntityId', 'clientBankName', 'clientIban', 'createdAt', 'updatedAt',
+  'createdAt', 'updatedAt',
+  'businessEntityId', 'clientBankName', 'clientIban', // NEW — appended last for sheet compat
 ];
 
 export const ITEM_FIELDS: (keyof InvoiceItem)[] = [

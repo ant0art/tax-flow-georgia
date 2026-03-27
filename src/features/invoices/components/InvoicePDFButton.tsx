@@ -3,6 +3,7 @@ import { pdf } from '@react-pdf/renderer';
 import { InvoicePDF } from './InvoicePDF';
 import type { InvoiceFormData, InvoiceItem } from '@/entities/invoice/schemas';
 import { useSettings } from '@/features/settings/hooks/useSettings';
+import { useClients } from '@/features/clients/hooks/useClients';
 import { Button } from '@/shared/ui/Button';
 import { Icon } from '@/shared/ui/Icon';
 import { useToastStore } from '@/shared/ui/Toast.store';
@@ -15,6 +16,7 @@ interface Props {
 
 export function InvoicePDFButton({ invoice, items }: Props) {
   const { settings } = useSettings();
+  const { clients } = useClients();
   const [loading, setLoading] = useState(false);
   const t = useT();
 
@@ -39,10 +41,29 @@ export function InvoicePDFButton({ invoice, items }: Props) {
           }
         : settings ?? undefined;
 
-      // Use bank details snapshotted at invoice creation time for immutability
-      const clientPdf = (invoice.clientBankName || invoice.clientIban)
-        ? { bankName: invoice.clientBankName, iban: invoice.clientIban }
-        : undefined;
+      // Lookup live client record for address/tin (not snapshotted — display-only)
+      const clientRecord = clients.find((c) => c.id === invoice.clientId);
+
+      // Bank details: prefer snapshotted values; fall back to live client account
+      // (fallback covers old invoices created before clientBankName was added to schema)
+      let resolvedBankName = invoice.clientBankName ?? '';
+      let resolvedIban = invoice.clientIban ?? '';
+
+      if (!resolvedBankName && !resolvedIban && clientRecord?.accounts?.length) {
+        // Try to find account matching invoice currency; otherwise take first account
+        const matchingAccount =
+          clientRecord.accounts.find((a) => a.currency === invoice.currency) ??
+          clientRecord.accounts[0];
+        resolvedBankName = matchingAccount.bankName ?? '';
+        resolvedIban = matchingAccount.iban ?? '';
+      }
+
+      const clientPdf = {
+        bankName: resolvedBankName,
+        iban: resolvedIban,
+        address: clientRecord?.address ?? '',
+        tin: clientRecord?.tin ?? '',
+      };
 
       const blob = await pdf(
         <InvoicePDF invoice={invoice} items={items} t={t} settings={pdfSettings} client={clientPdf} />

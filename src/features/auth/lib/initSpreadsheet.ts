@@ -27,6 +27,7 @@ const HEADERS: Record<string, string[]> = {
     'currency', 'subtotal', 'vatText', 'vatAmount', 'total',
     'project', 'status', 'linkedTransactionId', 'notes',
     'createdAt', 'updatedAt',
+    'businessEntityId', 'clientBankName', 'clientIban', // NEW — appended last
   ],
   invoice_items: [
     'id', 'invoiceId', 'description', 'quantity', 'unitPrice', 'total',

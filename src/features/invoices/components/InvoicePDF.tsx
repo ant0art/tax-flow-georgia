@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase' as const,
   },
   partyName: { fontSize: 11, fontWeight: 700, marginBottom: 2 },
-  partyDetail: { fontSize: 9, color: '#6B6560', lineHeight: 1.5 },
+  partyDetail: { fontSize: 9, color: '#6B6560', lineHeight: 1.3 },
 
   /* Banking sub-section */
   bankingWrap: {
@@ -127,6 +127,8 @@ interface Props {
   client?: {
     bankName?: string;
     iban?: string;
+    address?: string;
+    tin?: string;
   };
 }
 
@@ -156,9 +158,16 @@ export function InvoicePDF({ invoice, items, t, settings, client }: Props) {
           <View style={styles.partyCol}>
             <Text style={styles.partyLabel}>{t.pdf_invoice_for}</Text>
             <Text style={styles.partyName}>{invoice.clientName}</Text>
+            {client?.tin  && <Text style={styles.partyDetail}>{t.pdf_tin}: {client.tin}</Text>}
+            {client?.address && <Text style={styles.partyDetail}>{client.address}</Text>}
             {invoice.project && <Text style={styles.partyDetail}>{t.pdf_project}{invoice.project}</Text>}
-            {client?.bankName && <Text style={styles.partyDetail}>{t.pdf_bank}: {client.bankName}</Text>}
-            {client?.iban && <Text style={styles.partyDetail}>{t.pdf_account}: {client.iban}</Text>}
+            {(client?.bankName || client?.iban) && (
+              <View style={styles.bankingWrap}>
+                <Text style={styles.partyLabel}>{t.pdf_banking}</Text>
+                {client?.bankName && <Text style={styles.partyDetail}>{t.pdf_bank}: {client.bankName}</Text>}
+                {client?.iban    && <Text style={styles.partyDetail}>{t.pdf_account}: {client.iban}</Text>}
+              </View>
+            )}
           </View>
 
           {/* RIGHT: Payable To (seller) + Banking Details */}
@@ -192,7 +201,7 @@ export function InvoicePDF({ invoice, items, t, settings, client }: Props) {
           </View>
           {items.map((item) => (
             <View key={item.id} style={styles.tableRow}>
-              <Text style={styles.colDesc}>{item.description}</Text>
+              <Text style={styles.colDesc}>{String(item.description)}</Text>
               <Text style={styles.colQty}>{item.quantity}</Text>
               <Text style={styles.colPrice}>{sym}{Number(item.unitPrice).toFixed(2)}</Text>
               <Text style={styles.colTotal}>{sym}{Number(item.total).toFixed(2)}</Text>
@@ -206,9 +215,14 @@ export function InvoicePDF({ invoice, items, t, settings, client }: Props) {
             <Text style={styles.totalLabel}>{t.pdf_subtotal}</Text>
             <Text style={styles.totalValue}>{sym}{Number(invoice.subtotal).toFixed(2)}</Text>
           </View>
+          {/* VAT: show vatText as value when zero-rated, otherwise show formatted amount */}
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>{invoice.vatText || t.pdf_vat}</Text>
-            <Text style={styles.totalValue}>{sym}{Number(invoice.vatAmount).toFixed(2)}</Text>
+            <Text style={styles.totalLabel}>{t.pdf_vat}</Text>
+            <Text style={styles.totalValue}>
+              {Number(invoice.vatAmount) === 0
+                ? (invoice.vatText || t.pdf_vat_zero)
+                : `${sym}${Number(invoice.vatAmount).toFixed(2)}`}
+            </Text>
           </View>
           <View style={styles.grandTotal}>
             <Text style={styles.grandLabel}>{t.pdf_grand_total}</Text>
