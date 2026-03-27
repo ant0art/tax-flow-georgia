@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Icon } from '@/shared/ui/Icon';
+import { useT } from '@/shared/i18n/useT';
 import type { WidgetConfig, WidgetId } from '../hooks/useDashboardLayout';
 import './DashboardWidget.css';
 
@@ -24,6 +25,7 @@ export function DashboardWidget({
   draggingId,
   setDraggingId,
 }: Props) {
+  const t = useT();
   const [isOver, setIsOver] = useState(false);
   const dragRef = useRef<HTMLDivElement>(null);
 
@@ -103,7 +105,7 @@ export function DashboardWidget({
           onClick={() => onToggleLock(config.id)}
         >
           <Icon name={config.locked ? 'lock' : 'unlock'} size={12} />
-          {config.locked ? 'Locked' : 'Lock'}
+          {config.locked ? t['filter_locked'] : t['filter_lock']}
         </button>
       </div>
 

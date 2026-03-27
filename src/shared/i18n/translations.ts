@@ -213,6 +213,24 @@ export const translations = {
     // Theme
     theme_light: 'Light',
     theme_dark: 'Dark',
+
+    // Filters (shared)
+    filter_all_clients: 'All clients',
+    filter_all_currencies: 'All currencies',
+    filter_from: 'From',
+    filter_to: 'To',
+    filter_sort: 'Sort',
+    filter_min: 'Min ₾',
+    filter_max: 'Max ₾',
+    filter_reset: 'Reset',
+    filter_lock: 'Lock',
+    filter_locked: 'Locked',
+    sort_date_desc: 'Date ↓',
+    sort_date_asc: 'Date ↑',
+    sort_amount_desc: 'Amount ↓',
+    sort_amount_asc: 'Amount ↑',
+    sort_client_asc: 'Client A→Z',
+    sort_client_desc: 'Client Z→A',
   },
 
   ru: {
@@ -429,6 +447,24 @@ export const translations = {
     // Theme
     theme_light: 'Светлая',
     theme_dark: 'Тёмная',
+
+    // Filters (shared)
+    filter_all_clients: 'Все клиенты',
+    filter_all_currencies: 'Все валюты',
+    filter_from: 'С',
+    filter_to: 'По',
+    filter_sort: 'Сортировка',
+    filter_min: 'Мин ₾',
+    filter_max: 'Макс ₾',
+    filter_reset: 'Сбросить',
+    filter_lock: 'Закрепить',
+    filter_locked: 'Закреплено',
+    sort_date_desc: 'Дата ↓',
+    sort_date_asc: 'Дата ↑',
+    sort_amount_desc: 'Сумма ↓',
+    sort_amount_asc: 'Сумма ↑',
+    sort_client_asc: 'Клиент А→Я',
+    sort_client_desc: 'Клиент Я→А',
   },
 } as const;
 

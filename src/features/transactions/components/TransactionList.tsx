@@ -3,6 +3,7 @@ import { useTransactions } from '@/features/transactions/hooks/useTransactions';
 import { TransactionForm } from './TransactionForm';
 import { Button } from '@/shared/ui/Button';
 import { useT } from '@/shared/i18n/useT';
+import { useUIStore } from '@/shared/hooks/useTheme';
 import { Icon } from '@/shared/ui/Icon';
 import { CURRENCY_SYMBOL } from '@/shared/lib/currencies';
 import type { TransactionFormData } from '@/entities/transaction/schemas';
@@ -20,6 +21,7 @@ export function TransactionList() {
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState<{ tx: TransactionFormData; rowIndex: number } | null>(null);
   const t = useT();
+  const lang = useUIStore((s) => s.lang);
 
   // ── Filter state ──
   const [clientFilter, setClientFilter] = useState<string>('all');
@@ -50,10 +52,10 @@ export function TransactionList() {
 
   // Sort options for FilterDropdown
   const sortOptions: FilterOption[] = [
-    { value: 'date-desc',   label: 'Date ↓' },
-    { value: 'date-asc',    label: 'Date ↑' },
-    { value: 'amount-desc', label: 'Amount ↓' },
-    { value: 'amount-asc',  label: 'Amount ↑' },
+    { value: 'date-desc',   label: t['sort_date_desc'] },
+    { value: 'date-asc',    label: t['sort_date_asc'] },
+    { value: 'amount-desc', label: t['sort_amount_desc'] },
+    { value: 'amount-asc',  label: t['sort_amount_asc'] },
   ];
 
   // ── Infinite scroll ──
@@ -157,14 +159,14 @@ export function TransactionList() {
               clients={uniqueClients}
               value={clientFilter}
               onChange={setClientFilter}
-              placeholder={t['filter_all_clients'] ?? 'All clients'}
+              placeholder={t['filter_all_clients']}
             />
           )}
 
           {uniqueCurrencies.length > 1 && (
             <FilterDropdown
               options={[
-                { value: 'all', label: t['filter_all_currencies'] ?? 'All currencies' },
+                { value: 'all', label: t['filter_all_currencies'] },
                 ...uniqueCurrencies.map((c) => ({ value: c, label: c }))
               ]}
               value={currencyFilter}
@@ -178,13 +180,15 @@ export function TransactionList() {
             compact
             value={dateFrom}
             onChange={setDateFrom}
-            placeholder="From"
+            placeholder={t['filter_from']}
+            locale={lang === 'ru' ? 'ru' : 'en'}
           />
           <DatePicker
             compact
             value={dateTo}
             onChange={setDateTo}
-            placeholder="To"
+            placeholder={t['filter_to']}
+            locale={lang === 'ru' ? 'ru' : 'en'}
           />
 
           <div className="tx-filter-sep" />
@@ -192,16 +196,16 @@ export function TransactionList() {
           <FilterStepper
             value={amountMin}
             onChange={(e) => setAmountMin(e.target.value)}
-            placeholder="Min ₾"
+            placeholder={t['filter_min']}
             min={0}
-            title="Min amount (GEL)"
+            title={t['filter_min']}
           />
           <FilterStepper
             value={amountMax}
             onChange={(e) => setAmountMax(e.target.value)}
-            placeholder="Max ₾"
+            placeholder={t['filter_max']}
             min={0}
-            title="Max amount (GEL)"
+            title={t['filter_max']}
           />
 
           <div className="tx-filter-sep" />
@@ -213,9 +217,9 @@ export function TransactionList() {
           />
 
           {hasActiveFilters && (
-            <button className="tx-filter-reset" onClick={resetFilters} title="Reset all filters">
+            <button className="tx-filter-reset" onClick={resetFilters} title={t['filter_reset']}>
               <Icon name="x" size={13} />
-              Reset
+              {t['filter_reset']}
             </button>
           )}
         </div>

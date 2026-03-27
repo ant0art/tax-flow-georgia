@@ -6,6 +6,7 @@ import { InvoicePDFButton } from './InvoicePDFButton';
 import { Button } from '@/shared/ui/Button';
 import { useSettings } from '@/features/settings/hooks/useSettings';
 import { useT } from '@/shared/i18n/useT';
+import { useUIStore } from '@/shared/hooks/useTheme';
 import { Icon } from '@/shared/ui/Icon';
 import { CURRENCY_SYMBOL } from '@/shared/lib/currencies';
 import { ClientCombobox } from '@/shared/ui/ClientCombobox';
@@ -28,13 +29,13 @@ const STATUS_OPTIONS = [
   { value: 'overdue', labelKey: 'status_overdue' },
 ];
 
-const SORT_OPTIONS = [
-  { value: 'date_desc',   label: 'Date ↓' },
-  { value: 'date_asc',    label: 'Date ↑' },
-  { value: 'amount_desc', label: 'Amount ↓' },
-  { value: 'amount_asc',  label: 'Amount ↑' },
-  { value: 'client_asc',  label: 'Client A→Z' },
-  { value: 'client_desc', label: 'Client Z→A' },
+const SORT_KEYS = [
+  { value: 'date_desc',   key: 'sort_date_desc' },
+  { value: 'date_asc',    key: 'sort_date_asc' },
+  { value: 'amount_desc', key: 'sort_amount_desc' },
+  { value: 'amount_asc',  key: 'sort_amount_asc' },
+  { value: 'client_asc',  key: 'sort_client_asc' },
+  { value: 'client_desc', key: 'sort_client_desc' },
 ];
 
 // ── Custom status picker ──
@@ -107,6 +108,8 @@ export function InvoiceList() {
   const { invoices, isLoading, deleteInvoice, getItemsForInvoice, saveInvoice, changeStatus } = useInvoices();
   const { settings } = useSettings();
   const t = useT();
+  const lang = useUIStore((s) => s.lang);
+  const sortOptions = SORT_KEYS.map(({ value, key }) => ({ value, label: t[key] }));
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState<{ invoice: InvoiceFormData; items: InvoiceItem[]; rowIndex: number } | null>(null);
   const [changingStatusId, setChangingStatusId] = useState<string | null>(null);
@@ -295,21 +298,23 @@ export function InvoiceList() {
       <div className={`invoice-list__extra-filters ${showFiltersMobile ? 'is-open' : ''}`}>
         {/* Date range */}
         <div className="inv-filter-group">
-          <label className="inv-filter-label">From</label>
+          <label className="inv-filter-label">{t['filter_from']}</label>
           <DatePicker
             compact
             value={dateFrom}
             onChange={setDateFrom}
-            placeholder="From"
+            placeholder={t['filter_from']}
+            locale={lang === 'ru' ? 'ru' : 'en'}
           />
         </div>
         <div className="inv-filter-group">
-          <label className="inv-filter-label">To</label>
+          <label className="inv-filter-label">{t['filter_to']}</label>
           <DatePicker
             compact
             value={dateTo}
             onChange={setDateTo}
-            placeholder="To"
+            placeholder={t['filter_to']}
+            locale={lang === 'ru' ? 'ru' : 'en'}
           />
         </div>
 
@@ -317,12 +322,12 @@ export function InvoiceList() {
 
         {/* Client */}
         <div className="inv-filter-group">
-          <label className="inv-filter-label">Client</label>
+          <label className="inv-filter-label">{t['invoice_client']}</label>
           <ClientCombobox
             clients={clientOptions}
             value={clientFilter || 'all'}
             onChange={(v) => setClientFilter(v === 'all' ? '' : v)}
-            placeholder="All clients"
+            placeholder={t['filter_all_clients']}
           />
         </div>
 
@@ -330,7 +335,7 @@ export function InvoiceList() {
 
         {/* Amount range */}
         <div className="inv-filter-group">
-          <label className="inv-filter-label">Min</label>
+          <label className="inv-filter-label">{t['filter_min']}</label>
           <FilterStepper
             value={amountMin}
             onChange={(e) => setAmountMin(e.target.value)}
@@ -339,7 +344,7 @@ export function InvoiceList() {
           />
         </div>
         <div className="inv-filter-group">
-          <label className="inv-filter-label">Max</label>
+          <label className="inv-filter-label">{t['filter_max']}</label>
           <FilterStepper
             value={amountMax}
             onChange={(e) => setAmountMax(e.target.value)}
@@ -352,9 +357,9 @@ export function InvoiceList() {
 
         {/* Sort */}
         <div className="inv-filter-group">
-          <label className="inv-filter-label">Sort</label>
+          <label className="inv-filter-label">{t['filter_sort']}</label>
           <FilterDropdown
-            options={SORT_OPTIONS}
+            options={sortOptions}
             value={sortBy}
             onChange={setSortBy}
           />
@@ -362,9 +367,9 @@ export function InvoiceList() {
 
         {/* Reset */}
         {hasActiveFilters && (
-          <button className="inv-filter-reset" onClick={resetFilters} title="Reset all filters">
+          <button className="inv-filter-reset" onClick={resetFilters} title={t['filter_reset']}>
             <Icon name="x" size={13} />
-            Reset
+            {t['filter_reset']}
           </button>
         )}
       </div>
