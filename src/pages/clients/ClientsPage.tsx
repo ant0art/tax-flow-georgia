@@ -4,6 +4,7 @@ import { ClientForm } from '@/features/clients/components/ClientForm';
 import type { ClientFormData } from '@/entities/client/schemas';
 import { Button } from '@/shared/ui/Button';
 import { Icon } from '@/shared/ui/Icon';
+import { FilterDropdown } from '@/shared/ui/FilterDropdown';
 import { useT } from '@/shared/i18n/useT';
 import '@/features/clients/components/ClientList.css';
 import './ClientsPage.css';
@@ -88,19 +89,16 @@ export function ClientsPage() {
           )}
         </div>
 
-        <div className="field clients-page__currency-filter">
-          <select
-            className="field__select"
+        {availableCurrencies.length > 1 && (
+          <FilterDropdown
+            options={[
+              { value: '', label: t['clients_filter_all'] ?? 'All currencies' },
+              ...availableCurrencies.map((c) => ({ value: c, label: c })),
+            ]}
             value={currencyFilter}
-            onChange={(e) => setCurrencyFilter(e.target.value)}
-            aria-label={t['clients_filter_currency']}
-          >
-            <option value="">{t['clients_filter_all']}</option>
-            {availableCurrencies.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-        </div>
+            onChange={setCurrencyFilter}
+          />
+        )}
       </div>
 
       {/* ── Inline forms ── */}

@@ -6,11 +6,14 @@ import { useT } from '@/shared/i18n/useT';
 import { Icon } from '@/shared/ui/Icon';
 import { CURRENCY_SYMBOL } from '@/shared/lib/currencies';
 import type { TransactionFormData } from '@/entities/transaction/schemas';
+import { ClientCombobox } from '@/shared/ui/ClientCombobox';
+import { FilterDropdown } from '@/shared/ui/FilterDropdown';
+import type { FilterOption } from '@/shared/ui/FilterDropdown';
+import { FilterStepper } from '@/shared/ui/FilterStepper';
+import { DatePicker } from '@/shared/ui/DatePicker';
 import './TransactionList.css';
 
 type SortKey = 'date-desc' | 'date-asc' | 'amount-desc' | 'amount-asc';
-
-const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 export function TransactionList() {
   const { transactions, isLoading, deleteTransaction } = useTransactions();
@@ -19,8 +22,6 @@ export function TransactionList() {
   const t = useT();
 
   // ── Filter state ──
-  const [yearFilter, setYearFilter] = useState<string>('all');
-  const [monthFilter, setMonthFilter] = useState<string>('all');
   const [clientFilter, setClientFilter] = useState<string>('all');
   const [currencyFilter, setCurrencyFilter] = useState<string>('all');
   const [dateFrom, setDateFrom] = useState('');
@@ -30,15 +31,12 @@ export function TransactionList() {
   const [sort, setSort] = useState<SortKey>('date-desc');
 
   const hasActiveFilters =
-    yearFilter !== 'all' || monthFilter !== 'all' ||
     clientFilter !== 'all' || currencyFilter !== 'all' ||
     dateFrom !== '' || dateTo !== '' ||
     amountMin !== '' || amountMax !== '' ||
     sort !== 'date-desc';
 
   const resetFilters = () => {
-    setYearFilter('all');
-    setMonthFilter('all');
     setClientFilter('all');
     setCurrencyFilter('all');
     setDateFrom('');
@@ -48,8 +46,15 @@ export function TransactionList() {
     setSort('date-desc');
   };
 
-  // ── Mobile filters toggle ──
-  const [showFiltersMobile, setShowFiltersMobile] = useState(false);
+  // ── Mobile filters toggle (removed — filters always visible now) ──
+
+  // Sort options for FilterDropdown
+  const sortOptions: FilterOption[] = [
+    { value: 'date-desc',   label: 'Date ↓' },
+    { value: 'date-asc',    label: 'Date ↑' },
+    { value: 'amount-desc', label: 'Amount ↓' },
+    { value: 'amount-asc',  label: 'Amount ↑' },
+  ];
 
   // ── Infinite scroll ──
   const [visibleCount, setVisibleCount] = useState(20);
@@ -63,21 +68,12 @@ export function TransactionList() {
   }, []);
 
   // ── Option lists ──
-  const years = useMemo(() => {
-    const s = new Set(transactions.map((tx) => new Date(tx.date).getFullYear().toString()));
-    const cur = new Date().getFullYear().toString();
-    s.add(cur);
-    return [...s].sort((a, b) => Number(b) - Number(a));
-  }, [transactions]);
-
   const uniqueClients = useMemo(() => [...new Set(transactions.map((tx) => tx.clientName).filter(Boolean))].sort(), [transactions]);
   const uniqueCurrencies = useMemo(() => [...new Set(transactions.map((tx) => tx.currency).filter(Boolean))].sort(), [transactions]);
 
   // ── Filtered + sorted list ──
   const filtered = useMemo(() => {
     let list = [...transactions];
-    if (yearFilter !== 'all') list = list.filter((tx) => new Date(tx.date).getFullYear().toString() === yearFilter);
-    if (monthFilter !== 'all') list = list.filter((tx) => new Date(tx.date).getMonth().toString() === monthFilter);
     if (clientFilter !== 'all') list = list.filter((tx) => tx.clientName === clientFilter);
     if (currencyFilter !== 'all') list = list.filter((tx) => tx.currency === currencyFilter);
     if (dateFrom) list = list.filter((tx) => tx.date >= dateFrom);
@@ -96,7 +92,7 @@ export function TransactionList() {
       }
     });
     return list;
-  }, [transactions, yearFilter, monthFilter, clientFilter, currencyFilter, dateFrom, dateTo, amountMin, amountMax, sort]);
+  }, [transactions, clientFilter, currencyFilter, dateFrom, dateTo, amountMin, amountMax, sort]);
 
   const [prevFilteredLength, setPrevFilteredLength] = useState(filtered.length);
   if (filtered.length !== prevFilteredLength) {
@@ -142,17 +138,6 @@ export function TransactionList() {
           </span>
         </h1>
         <div className="list-header-actions">
-          {!showForm && transactions.length > 0 && (
-            <Button 
-              className="mobile-filter-toggle" 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setShowFiltersMobile(!showFiltersMobile)}
-              title="Toggle filters"
-            >
-              <Icon name="sliders" size={16} />
-            </Button>
-          )}
           {!showForm && (
             <Button size="sm" onClick={() => setShowForm(true)}>
               {t['transaction_add']}
@@ -164,88 +149,54 @@ export function TransactionList() {
       {/* New transaction form (inline) */}
       {showForm && <TransactionForm onDone={() => setShowForm(false)} />}
 
-      {/* Filter bar */}
+      {/* Filter bar — always visible */}
       {transactions.length > 0 && (
-        <div className={`tx-filters ${showFiltersMobile ? 'is-open' : ''}`}>
-          <select
-            className="tx-filter-select"
-            value={yearFilter}
-            onChange={(e) => setYearFilter(e.target.value)}
-            title="Year"
-          >
-            <option value="all">All years</option>
-            {years.map((y) => <option key={y} value={y}>{y}</option>)}
-          </select>
-
-          <select
-            className="tx-filter-select"
-            value={monthFilter}
-            onChange={(e) => setMonthFilter(e.target.value)}
-            title="Month"
-          >
-            <option value="all">All months</option>
-            {MONTHS_SHORT.map((m, i) => (
-              <option key={i} value={i.toString()}>{m}</option>
-            ))}
-          </select>
-
+        <div className="tx-filters">
           {uniqueClients.length > 1 && (
-            <select
-              className="tx-filter-select"
+            <ClientCombobox
+              clients={uniqueClients}
               value={clientFilter}
-              onChange={(e) => setClientFilter(e.target.value)}
-              title="Client"
-            >
-              <option value="all">All clients</option>
-              {uniqueClients.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
+              onChange={setClientFilter}
+              placeholder={t['filter_all_clients'] ?? 'All clients'}
+            />
           )}
 
           {uniqueCurrencies.length > 1 && (
-            <select
-              className="tx-filter-select"
+            <FilterDropdown
+              options={[
+                { value: 'all', label: t['filter_all_currencies'] ?? 'All currencies' },
+                ...uniqueCurrencies.map((c) => ({ value: c, label: c }))
+              ]}
               value={currencyFilter}
-              onChange={(e) => setCurrencyFilter(e.target.value)}
-              title="Currency"
-            >
-              <option value="all">All currencies</option>
-              {uniqueCurrencies.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
+              onChange={setCurrencyFilter}
+            />
           )}
 
           <div className="tx-filter-sep" />
 
-          <input
-            type="date"
-            className="tx-filter-date"
+          <DatePicker
+            compact
             value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-            title="From date"
-            max={dateTo || undefined}
+            onChange={setDateFrom}
+            placeholder="From"
           />
-          <input
-            type="date"
-            className="tx-filter-date"
+          <DatePicker
+            compact
             value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-            title="To date"
-            min={dateFrom || undefined}
+            onChange={setDateTo}
+            placeholder="To"
           />
 
           <div className="tx-filter-sep" />
 
-          <input
-            type="number"
-            className="tx-filter-num"
+          <FilterStepper
             value={amountMin}
             onChange={(e) => setAmountMin(e.target.value)}
             placeholder="Min ₾"
             min={0}
             title="Min amount (GEL)"
           />
-          <input
-            type="number"
-            className="tx-filter-num"
+          <FilterStepper
             value={amountMax}
             onChange={(e) => setAmountMax(e.target.value)}
             placeholder="Max ₾"
@@ -255,17 +206,11 @@ export function TransactionList() {
 
           <div className="tx-filter-sep" />
 
-          <select
-            className="tx-filter-select"
+          <FilterDropdown
+            options={sortOptions}
             value={sort}
-            onChange={(e) => setSort(e.target.value as SortKey)}
-            title="Sort"
-          >
-            <option value="date-desc">Date ↓</option>
-            <option value="date-asc">Date ↑</option>
-            <option value="amount-desc">Amount ↓</option>
-            <option value="amount-asc">Amount ↑</option>
-          </select>
+            onChange={(v) => setSort(v as SortKey)}
+          />
 
           {hasActiveFilters && (
             <button className="tx-filter-reset" onClick={resetFilters} title="Reset all filters">

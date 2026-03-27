@@ -1,0 +1,187 @@
+/* ── ClientCombobox ── */
+.client-combobox {
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* Trigger button — same height as other filter controls */
+.client-combobox__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 8px 0 var(--space-3);
+  font: var(--text-small);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color var(--duration-fast), background var(--duration-fast);
+  white-space: nowrap;
+  max-width: 160px;
+}
+
+.client-combobox__trigger:hover,
+.client-combobox--open .client-combobox__trigger {
+  border-color: var(--color-border-focus);
+}
+
+.client-combobox__trigger--active {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: rgba(var(--color-primary-rgb, 184, 58, 45), 0.06);
+  /* double border ring — matches filter-chip--active style */
+  box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-accent);
+}
+
+.client-combobox__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.client-combobox__chevron {
+  flex-shrink: 0;
+  color: var(--color-text-tertiary);
+  transition: transform var(--duration-fast);
+}
+
+.client-combobox__chevron--open {
+  transform: rotate(180deg);
+}
+
+/* Dropdown */
+.client-combobox__dropdown {
+  position: absolute;
+  z-index: 200;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 200px;
+  background: var(--color-surface-raised, var(--color-surface));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg, 0 8px 24px rgba(0,0,0,0.18));
+  animation: combobox-enter 0.12s ease-out;
+  overflow: hidden;
+}
+
+@keyframes combobox-enter {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Search row */
+.client-combobox__search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.client-combobox__search-icon {
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+}
+
+.client-combobox__search {
+  flex: 1;
+  border: none;
+  background: none;
+  color: var(--color-text);
+  font: var(--text-small);
+  outline: none;
+  box-shadow: none;
+  -webkit-appearance: none;
+  appearance: none;
+  min-width: 0;
+}
+
+.client-combobox__search::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+/* Suppress global :focus-visible outline inside the combobox search */
+.client-combobox__search:focus,
+.client-combobox__search:focus-visible {
+  outline: none;
+}
+
+.client-combobox__search-clear {
+  display: flex;
+  align-items: center;
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+  transition: color var(--duration-fast);
+}
+
+.client-combobox__search-clear:hover {
+  color: var(--color-text);
+}
+
+/* List — max 5 items visible, then scroll */
+.client-combobox__list {
+  max-height: calc(5 * 32px);  /* 32px per option row */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  /* Custom scrollbar matching app design */
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.client-combobox__list::-webkit-scrollbar {
+  width: 5px;
+}
+
+.client-combobox__list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.client-combobox__list::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 99px;
+}
+
+.client-combobox__list::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-tertiary);
+}
+
+/* Option row */
+.client-combobox__option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 32px;
+  padding: 0 var(--space-3);
+  font: var(--text-small);
+  color: var(--color-text);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background var(--duration-fast), color var(--duration-fast);
+}
+
+.client-combobox__option:hover {
+  background: var(--color-surface-hover);
+}
+
+.client-combobox__option--active {
+  color: var(--color-accent);
+  font-weight: 500;
+  background: rgba(var(--color-primary-rgb, 184, 58, 45), 0.06);
+}
+
+.client-combobox__empty {
+  padding: 8px var(--space-3);
+  font: var(--text-small);
+  color: var(--color-text-tertiary);
+  text-align: center;
+}

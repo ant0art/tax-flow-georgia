@@ -1,0 +1,96 @@
+/* ── FilterStepper — compact number stepper for filter bars ── */
+/* Matches qty-stepper design from InvoiceForm, sized for filter controls */
+
+.filter-stepper {
+  display: inline-flex;
+  align-items: stretch;
+  height: 30px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color var(--duration-fast) var(--easing-default),
+              box-shadow    var(--duration-fast) var(--easing-default);
+}
+
+.filter-stepper:focus-within {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-border-focus);
+}
+
+.filter-stepper__input {
+  width: 56px;
+  padding: 0 6px;
+  background: var(--color-surface);
+  border: none;
+  outline: none;
+  text-align: center;
+  font: var(--text-small);
+  color: var(--color-text);
+  min-width: 0;
+  /* hide native spinners — we render our own */
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.filter-stepper__input::-webkit-inner-spin-button,
+.filter-stepper__input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+.filter-stepper__input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.filter-stepper__side {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface-inset);
+  border-left: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.filter-stepper__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  flex: 1;
+  cursor: pointer;
+  color: var(--color-text-tertiary);
+  transition: color var(--duration-fast), background var(--duration-fast);
+  font-size: 0;
+  border: none;
+  background: none;
+  padding: 0;
+}
+
+.filter-stepper__btn + .filter-stepper__btn {
+  border-top: 1px solid var(--color-border);
+}
+
+.filter-stepper__btn:hover {
+  color: var(--color-accent);
+  background: rgba(75, 96, 127, 0.08);
+}
+
+.filter-stepper__btn:active {
+  background: rgba(75, 96, 127, 0.16);
+}
+
+.filter-stepper__btn svg {
+  display: block;
+  pointer-events: none;
+}
+
+/* ── Mobile compact ── */
+@media (max-width: 639px) {
+  .filter-stepper {
+    height: 26px;
+  }
+  .filter-stepper__input {
+    width: 44px;
+    font-size: 12px;
+    padding: 0 4px;
+  }
+  .filter-stepper__btn {
+    width: 14px;
+  }
+}

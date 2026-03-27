@@ -12,6 +12,7 @@ import { CURRENCIES, currencyLabel } from '@/shared/lib/currencies';
 import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
 import { useT } from '@/shared/i18n/useT';
+import { useUIStore } from '@/shared/hooks/useTheme';
 import { Icon } from '@/shared/ui/Icon';
 import { ClientCombobox } from '@/features/clients/components/ClientCombobox';
 import { DatePicker } from '@/shared/ui/DatePicker';
@@ -29,6 +30,7 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
   const { clients } = useClients();
   const { settings } = useSettings();
   const t = useT();
+  const lang = useUIStore((s) => s.lang);
   const [createTransaction, setCreateTransaction] = useState(false);
 
   // Autocomplete suggestions from past invoices
@@ -286,6 +288,7 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
               value={watch('date')}
               onChange={(v: string) => setValue('date', v)}
               error={errors.date?.message}
+              locale={lang}
             />
             <DatePicker
               label={t['invoice_due_date']}
@@ -295,6 +298,7 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
                 setValue('dueDate', v);
               }}
               error={errors.dueDate?.message}
+              locale={lang}
             />
             <div className="field">
               <label className="field__label" htmlFor="inv-currency">{t['invoice_currency']}</label>

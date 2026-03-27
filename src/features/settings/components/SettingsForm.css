@@ -29,7 +29,7 @@
 .settings-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--space-3);
+  gap: var(--space-4);  /* was space-3; extra room for focus rings */
 }
 
 @media (min-width: 640px) {

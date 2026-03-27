@@ -8,6 +8,9 @@
   padding: var(--space-4) var(--space-5);
   box-shadow: var(--shadow-1);
   max-width: 960px;
+  /* Above sticky tx-filters (z-index:20) so DatePicker popup isn't clipped */
+  position: relative;
+  z-index: 21;
 }
 
 .transaction-form__title {

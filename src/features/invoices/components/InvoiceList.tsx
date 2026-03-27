@@ -8,6 +8,10 @@ import { useSettings } from '@/features/settings/hooks/useSettings';
 import { useT } from '@/shared/i18n/useT';
 import { Icon } from '@/shared/ui/Icon';
 import { CURRENCY_SYMBOL } from '@/shared/lib/currencies';
+import { ClientCombobox } from '@/shared/ui/ClientCombobox';
+import { FilterDropdown } from '@/shared/ui/FilterDropdown';
+import { FilterStepper } from '@/shared/ui/FilterStepper';
+import { DatePicker } from '@/shared/ui/DatePicker';
 import './InvoiceList.css';
 
 const STATUS_ICONS: Record<string, { labelKey: string; icon: React.ReactNode }> = {
@@ -292,22 +296,20 @@ export function InvoiceList() {
         {/* Date range */}
         <div className="inv-filter-group">
           <label className="inv-filter-label">From</label>
-          <input
-            type="date"
-            className="inv-filter-input"
+          <DatePicker
+            compact
             value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-            max={dateTo || undefined}
+            onChange={setDateFrom}
+            placeholder="From"
           />
         </div>
         <div className="inv-filter-group">
           <label className="inv-filter-label">To</label>
-          <input
-            type="date"
-            className="inv-filter-input"
+          <DatePicker
+            compact
             value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-            min={dateFrom || undefined}
+            onChange={setDateTo}
+            placeholder="To"
           />
         </div>
 
@@ -316,16 +318,12 @@ export function InvoiceList() {
         {/* Client */}
         <div className="inv-filter-group">
           <label className="inv-filter-label">Client</label>
-          <select
-            className="inv-filter-input inv-filter-input--select"
-            value={clientFilter}
-            onChange={(e) => setClientFilter(e.target.value)}
-          >
-            <option value="">All clients</option>
-            {clientOptions.map((name) => (
-              <option key={name} value={name}>{name}</option>
-            ))}
-          </select>
+          <ClientCombobox
+            clients={clientOptions}
+            value={clientFilter || 'all'}
+            onChange={(v) => setClientFilter(v === 'all' ? '' : v)}
+            placeholder="All clients"
+          />
         </div>
 
         <div className="inv-filter-sep" />
@@ -333,9 +331,7 @@ export function InvoiceList() {
         {/* Amount range */}
         <div className="inv-filter-group">
           <label className="inv-filter-label">Min</label>
-          <input
-            type="number"
-            className="inv-filter-input inv-filter-input--num"
+          <FilterStepper
             value={amountMin}
             onChange={(e) => setAmountMin(e.target.value)}
             placeholder="0"
@@ -344,9 +340,7 @@ export function InvoiceList() {
         </div>
         <div className="inv-filter-group">
           <label className="inv-filter-label">Max</label>
-          <input
-            type="number"
-            className="inv-filter-input inv-filter-input--num"
+          <FilterStepper
             value={amountMax}
             onChange={(e) => setAmountMax(e.target.value)}
             placeholder="∞"
@@ -359,15 +353,11 @@ export function InvoiceList() {
         {/* Sort */}
         <div className="inv-filter-group">
           <label className="inv-filter-label">Sort</label>
-          <select
-            className="inv-filter-input inv-filter-input--select"
+          <FilterDropdown
+            options={SORT_OPTIONS}
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-          >
-            {SORT_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
+            onChange={setSortBy}
+          />
         </div>
 
         {/* Reset */}

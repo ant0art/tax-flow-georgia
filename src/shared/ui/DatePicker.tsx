@@ -3,14 +3,19 @@ import { Icon } from '@/shared/ui/Icon';
 import './DatePicker.css';
 
 interface DatePickerProps {
-  label: string;
+  label?: string;
   value: string;
   onChange: (value: string) => void;
   error?: string;
+  locale?: 'en' | 'ru';
+  /** Compact mode for filter bars — no label, smaller height */
+  compact?: boolean;
+  placeholder?: string;
 }
 
 // Monday = 0 … Sunday = 6
-const DAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+const DAYS_EN = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+const DAYS_RU = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
 function getDaysInMonth(year: number, month: number): number {
   return new Date(year, month + 1, 0).getDate();
@@ -33,12 +38,16 @@ function parseDate(str: string): { year: number; month: number; day: number } | 
   return { year: y, month: m - 1, day: d };
 }
 
-const MONTH_NAMES = [
+const MONTH_NAMES_EN = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ];
+const MONTH_NAMES_RU = [
+  'Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн',
+  'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек',
+];
 
-export function DatePicker({ label, value, onChange, error }: DatePickerProps) {
+export function DatePicker({ label, value, onChange, error, locale = 'en', compact = false, placeholder }: DatePickerProps) {
   const [open, setOpen] = useState(false);
   const parsed = parseDate(value);
   const now = new Date();
@@ -46,6 +55,11 @@ export function DatePicker({ label, value, onChange, error }: DatePickerProps) {
   const [viewMonth, setViewMonth] = useState(parsed?.month ?? now.getMonth());
   const containerRef = useRef<HTMLDivElement>(null);
   const calendarRef = useRef<HTMLDivElement>(null);
+
+  const DAYS = locale === 'ru' ? DAYS_RU : DAYS_EN;
+  const MONTH_NAMES = locale === 'ru' ? MONTH_NAMES_RU : MONTH_NAMES_EN;
+  const labelToday = locale === 'ru' ? 'Сегодня' : 'Today';
+  const labelClear = locale === 'ru' ? 'Очистить' : 'Clear';
 
   // Close on click outside
   useEffect(() => {
@@ -59,7 +73,7 @@ export function DatePicker({ label, value, onChange, error }: DatePickerProps) {
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
-  // Keep calendar within viewport by running inline after each open
+  // Keep calendar within viewport
   useEffect(() => {
     if (!open) return;
     const cal = calendarRef.current;
@@ -77,7 +91,6 @@ export function DatePicker({ label, value, onChange, error }: DatePickerProps) {
     });
   }, [open]);
 
-  // When opening, sync calendar view to current value
   const handleOpen = () => {
     const p = parseDate(value);
     if (p) {
@@ -123,9 +136,8 @@ export function DatePicker({ label, value, onChange, error }: DatePickerProps) {
     setOpen(false);
   };
 
-  const inputId = `dp-${label.toLowerCase().replace(/\s+/g, '-')}`;
+  const inputId = `dp-${(label ?? 'date').toLowerCase().replace(/\s+/g, '-')}`;
 
-  // Build day cells
   const cells: (number | null)[] = [];
   for (let i = 0; i < firstDay; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
@@ -135,14 +147,14 @@ export function DatePicker({ label, value, onChange, error }: DatePickerProps) {
     day === today.getDate() && viewMonth === today.getMonth() && viewYear === today.getFullYear();
 
   return (
-    <div className={`field datepicker ${error ? 'field--error' : ''}`} ref={containerRef}>
-      <label className="field__label" htmlFor={inputId}>{label}</label>
+    <div className={`field datepicker ${compact ? 'datepicker--compact' : ''} ${error ? 'field--error' : ''}`} ref={containerRef}>
+      {label && !compact && <label className="field__label" htmlFor={inputId}>{label}</label>}
       <div className="datepicker__input-wrap">
         <input
           id={inputId}
           className="field__input"
           type="text"
-          placeholder="YYYY-MM-DD"
+          placeholder={placeholder ?? (compact ? 'дд.мм.гггг' : 'YYYY-MM-DD')}
           value={value}
           onChange={handleInputChange}
           onFocus={handleOpen}
@@ -171,9 +183,7 @@ export function DatePicker({ label, value, onChange, error }: DatePickerProps) {
           {/* Month navigation */}
           <div className="datepicker__nav">
             <button type="button" onClick={prevMonth} className="datepicker__nav-btn">‹</button>
-            <span className="datepicker__nav-label">
-              {MONTH_NAMES[viewMonth]}
-            </span>
+            <span className="datepicker__nav-label">{MONTH_NAMES[viewMonth]}</span>
             <button type="button" onClick={nextMonth} className="datepicker__nav-btn">›</button>
           </div>
 
@@ -204,8 +214,8 @@ export function DatePicker({ label, value, onChange, error }: DatePickerProps) {
           </div>
 
           <div className="datepicker__footer">
-            <button type="button" className="datepicker__footer-btn" onClick={selectToday}>Today</button>
-            {value && <button type="button" className="datepicker__footer-btn datepicker__footer-btn--clear" onClick={clearDate}>Clear</button>}
+            <button type="button" className="datepicker__footer-btn" onClick={selectToday}>{labelToday}</button>
+            {value && <button type="button" className="datepicker__footer-btn datepicker__footer-btn--clear" onClick={clearDate}>{labelClear}</button>}
           </div>
         </div>
       )}

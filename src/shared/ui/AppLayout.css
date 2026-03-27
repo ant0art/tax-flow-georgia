@@ -104,7 +104,8 @@
 .app-main {
   flex: 1;
   padding: 16px;
-  overflow-x: clip;
+  /* overflow-x was here but it broke position:sticky in Chrome.
+     Now handled at .app-layout level. */
 }
 
 /* ── BOTTOM NAV (mobile) ── */

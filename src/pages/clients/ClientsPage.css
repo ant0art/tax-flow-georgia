@@ -33,6 +33,7 @@
   gap: var(--space-3);
   flex-wrap: wrap;
   align-items: center;
+  overflow: visible; /* let dropdown menus extend beyond */
 }
 
 /* Search box */
@@ -54,11 +55,12 @@
 
 .clients-search__input {
   width: 100%;
-  padding: 7px 32px 7px 32px;
+  height: 30px;
+  padding: 0 32px 0 32px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  font: var(--text-body);
+  font: var(--text-small);
   color: var(--color-text);
   transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
   appearance: none;
@@ -102,11 +104,8 @@
   background: var(--color-surface-inset);
 }
 
-/* Currency filter */
-.clients-page__currency-filter {
-  min-width: 160px;
-  margin: 0;
-}
+
+
 
 /* Results count */
 .clients-page__count {

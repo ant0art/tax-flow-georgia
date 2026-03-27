@@ -30,7 +30,7 @@
 /* Extra filters + sort row */
 .invoice-list__extra-filters {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   flex-wrap: wrap;
   gap: var(--space-2);
   max-width: 960px;
@@ -38,6 +38,10 @@
   background: var(--color-surface-inset);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
+  /* ── Sticky below the status chips ── */
+  position: sticky;
+  top: 44px;   /* approx height of status chips row (30px chip + 2×6px padding) */
+  z-index: 19;
 }
 
 .list-header-actions {
@@ -79,6 +83,7 @@
 
 .inv-filter-input:focus {
   border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-border-focus);
 }
 
 .inv-filter-input--select {
@@ -93,6 +98,19 @@
 
 .inv-filter-input--num {
   width: 80px;
+}
+
+/* Styled number spinners */
+.inv-filter-input--num::-webkit-inner-spin-button {
+  opacity: 1;
+  cursor: pointer;
+  background: var(--color-surface-inset);
+  border-left: 1px solid var(--color-border);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 2px 4px;
+}
+.inv-filter-input--num::-webkit-inner-spin-button:hover {
+  background: var(--color-surface-hover, var(--color-surface-inset));
 }
 
 .inv-filter-sep {
@@ -136,15 +154,40 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   cursor: pointer;
-  transition: all var(--duration-fast) var(--easing-default);
+  outline: none;              /* remove browser rectangle */
+  transition: background var(--duration-fast), box-shadow var(--duration-fast),
+              border-color var(--duration-fast), color var(--duration-fast),
+              opacity var(--duration-fast), transform var(--duration-fast);
 }
 
 .filter-chip:hover { background: var(--color-surface-inset); }
 
-.filter-chip--active {
+/* Keyboard focus ring (non-active chips) */
+.filter-chip:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-border-focus);
+}
+
+.filter-chip:active {
+  transform: scale(0.97);
+}
+
+/* ── Active state — full dark accent background + double border ring ── */
+.filter-chip--active,
+.filter-chip--active:focus,
+.filter-chip--active:focus-visible {
   background: var(--color-accent);
   color: #fff;
   border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-accent);
+}
+
+.filter-chip--active:hover {
+  opacity: 0.88;
+}
+
+.filter-chip--active:active {
+  transform: scale(0.97);
+  opacity: 0.85;
 }
 
 /* Cards grid */
@@ -353,6 +396,16 @@
   color: var(--color-text-tertiary);
 }
 
+/* ── Tablet + mobile: header visible, need sticky offset ── */
+@media (max-width: 1023px) {
+  .invoice-list__filters {
+    top: 48px;  /* clear sticky app-header */
+  }
+  .invoice-list__extra-filters {
+    top: 90px;  /* 48px header + ~42px chips row */
+  }
+}
+
 /* ── Mobile adjustments ── */
 @media (max-width: 639px) {
   .invoice-cards { 
@@ -374,16 +427,20 @@
     display: none; 
   }
   .invoice-card__bottom {
-    /* Buttons are absolute corner; give less breathing room on small screens */
     padding-right: 100px;
   }
-  .mobile-filter-toggle {
-    display: inline-flex;
-  }
+
+  /* Compact extra-filters — always visible, no toggle */
   .invoice-list__extra-filters {
-    display: none;
+    gap: 4px;
+    padding: 4px 6px;
   }
-  .invoice-list__extra-filters.is-open {
-    display: flex;
-  }
+  .inv-filter-label { display: none; }
+  .inv-filter-sep   { display: none; }
+  .inv-filter-input  { height: 26px; font-size: 12px; }
+  .inv-filter-reset  { height: 26px; font-size: 12px; padding: 0 var(--space-2); }
+
+  /* Ensure FilterDropdown + ClientCombobox match filter height */
+  .invoice-list__extra-filters .filter-dropdown__trigger,
+  .invoice-list__extra-filters .client-combobox__trigger { height: 26px; font-size: 12px; }
 }

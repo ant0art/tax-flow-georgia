@@ -14,6 +14,7 @@ import { Button } from '@/shared/ui/Button';
 import { DatePicker } from '@/shared/ui/DatePicker';
 import { ClientCombobox } from '@/features/clients/components/ClientCombobox';
 import { useT } from '@/shared/i18n/useT';
+import { useUIStore } from '@/shared/hooks/useTheme';
 import { Icon } from '@/shared/ui/Icon';
 import './TransactionForm.css';
 
@@ -32,6 +33,7 @@ export function TransactionForm({ onDone, initial, rowIndex }: Props) {
   const [clientId, setClientId] = useState('');
   const [createInvoice, setCreateInvoice] = useState(false);
   const t = useT();
+  const lang = useUIStore((s) => s.lang);
 
   const isEdit = !!initial && rowIndex !== undefined;
   const today = new Date().toISOString().split('T')[0];
@@ -292,6 +294,7 @@ export function TransactionForm({ onDone, initial, rowIndex }: Props) {
           value={date}
           onChange={(v) => setValue('date', v)}
           error={errors.date?.message}
+          locale={lang}
         />
         <ClientCombobox
           clients={clients}

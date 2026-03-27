@@ -10,6 +10,15 @@
   flex-wrap: wrap;
   gap: var(--space-2);
   max-width: 960px;
+  /* Card-like wrapper — matches Invoices extra-filters panel */
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-inset);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  /* Sticky filter bar */
+  position: sticky;
+  top: 0;
+  z-index: 20;
 }
 
 .list-header-actions {
@@ -42,9 +51,13 @@
   background-position: right 8px center;
 }
 
-.tx-filter-select:hover,
+.tx-filter-select:hover {
+  border-color: var(--color-border-focus);
+}
+
 .tx-filter-select:focus {
   border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-border-focus);
   outline: none;
 }
 
@@ -71,10 +84,25 @@
 .tx-filter-date:focus,
 .tx-filter-num:focus {
   border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-border-focus);
+  outline: none;
 }
 
 .tx-filter-num {
   width: 90px;
+}
+
+/* Styled number spinners */
+.tx-filter-num::-webkit-inner-spin-button {
+  opacity: 1;
+  cursor: pointer;
+  background: var(--color-surface-inset);
+  border-left: 1px solid var(--color-border);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 2px 4px;
+}
+.tx-filter-num::-webkit-inner-spin-button:hover {
+  background: var(--color-surface-hover, var(--color-surface-inset));
 }
 
 .tx-filter-reset {
@@ -361,20 +389,27 @@
   .tx-row__amounts { grid-column: 2; grid-row: 2; min-width: 90px; }
 }
 
-@media (max-width: 639px) {
-  .mobile-filter-toggle {
-    display: inline-flex;
-  }
+/* ── Tablet + mobile: header visible, need sticky offset ── */
+@media (max-width: 1023px) {
   .tx-filters {
-    display: none;
-    padding: var(--space-2) var(--space-3);
-    background: var(--color-surface-inset);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
+    top: 48px; /* clear the sticky app-header */
   }
-  .tx-filters.is-open {
-    display: flex;
+}
+
+/* ── Compact mobile filters ── */
+@media (max-width: 639px) {
+  .tx-filters {
+    gap: 4px;
+    padding: 4px 6px;
   }
+  .tx-filter-sep  { display: none; }
+  .tx-filter-date { height: 26px; font-size: 12px; width: 110px; }
+  .tx-filter-select { height: 26px; font-size: 12px; }
+  .tx-filter-reset  { height: 26px; font-size: 12px; padding: 0 var(--space-2); }
+
+  /* Ensure FilterDropdown + ClientCombobox match filter height */
+  .tx-filters .filter-dropdown__trigger,
+  .tx-filters .client-combobox__trigger { height: 26px; font-size: 12px; }
 }
 
 
