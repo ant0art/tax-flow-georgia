@@ -2,6 +2,7 @@ import { useGoogleLogin } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/features/auth/store';
 import { initUserSpreadsheet } from '@/features/auth/lib/initSpreadsheet';
+import { useUIStore } from '@/shared/hooks/useTheme';
 import { useT } from '@/shared/i18n/useT';
 import { Icon } from '@/shared/ui/Icon';
 import './LoginPage.css';
@@ -12,6 +13,7 @@ export function LoginPage() {
   const setSpreadsheetId = useAuthStore((s) => s.setSpreadsheetId);
   const navigate = useNavigate();
   const t = useT();
+  const { lang, toggleLang } = useUIStore();
 
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -52,6 +54,16 @@ export function LoginPage() {
 
   return (
     <div className="login-page">
+      <button
+        className="login-lang-toggle"
+        onClick={toggleLang}
+        title={lang === 'en' ? 'Switch to Russian' : 'Switch to English'}
+        aria-label="Toggle language"
+      >
+        <Icon name="globe" size={15} />
+        <span>{lang === 'en' ? 'RU' : 'EN'}</span>
+      </button>
+
       <div className="login-card">
         <div className="login-card__icon">
           <Icon name="chart-bar" size={40} />
