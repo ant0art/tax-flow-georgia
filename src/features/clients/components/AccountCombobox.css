@@ -1,0 +1,78 @@
+/* ── Account Combobox ── */
+.account-combobox {
+  position: relative;
+}
+
+.account-combobox__display {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  flex: 1;
+}
+
+.account-combobox__display--warn {
+  color: var(--color-warning, #d9821b);
+}
+
+.account-combobox__icon--ok {
+  color: var(--color-success, #36a96a);
+  flex-shrink: 0;
+}
+
+.account-combobox__bank {
+  font: var(--text-body);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.account-combobox__iban {
+  font: var(--text-caption);
+  font-family: var(--font-mono);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Inline create form ── */
+.account-combobox__create {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-inset, rgba(0, 0, 0, 0.03));
+  animation: combobox-enter 0.15s ease-out;
+}
+
+.account-combobox__create-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: var(--text-small);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-tertiary);
+}
+
+.account-combobox__create-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+@media (max-width: 639px) {
+  .account-combobox__create-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+.account-combobox__create-actions {
+  display: flex;
+  gap: var(--space-2);
+}

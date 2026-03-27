@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import type { Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { invoiceSchema, generateInvoiceNumber } from '@/entities/invoice/schemas';
 import type { InvoiceFormData, InvoiceItem } from '@/entities/invoice/schemas';
+import type { ClientAccount } from '@/entities/client/schemas';
 import { useInvoices } from '@/features/invoices/hooks/useInvoices';
 import { useTransactions } from '@/features/transactions/hooks/useTransactions';
 import { useClients } from '@/features/clients/hooks/useClients';
@@ -15,6 +17,7 @@ import { useT } from '@/shared/i18n/useT';
 import { useUIStore } from '@/shared/hooks/useTheme';
 import { Icon } from '@/shared/ui/Icon';
 import { ClientCombobox } from '@/features/clients/components/ClientCombobox';
+import { AccountCombobox } from '@/features/clients/components/AccountCombobox';
 import { DatePicker } from '@/shared/ui/DatePicker';
 import './InvoiceForm.css';
 import { FieldSelect } from '@/shared/ui/FieldSelect';
@@ -27,12 +30,25 @@ interface InvoiceFormProps {
 export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
   const isEdit = !!initial;
   const { invoices, items: allItems, saveInvoice, isSaving } = useInvoices();
-  const { addTransaction } = useTransactions();
+  const { addTransaction, updateTransaction, transactions } = useTransactions();
   const { clients } = useClients();
   const { settings } = useSettings();
   const t = useT();
   const lang = useUIStore((s) => s.lang);
   const [createTransaction, setCreateTransaction] = useState(false);
+
+  // Account selection — AccountCombobox manages filtering, we just track selected ID
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(() => {
+    // In edit mode: try to match existing bank details to an account
+    if (initial?.invoice.clientBankName) {
+      const client = clients.find((c) => c.id === initial.invoice.clientId);
+      const match = (client?.accounts ?? []).find(
+        (a) => a.bankName === initial.invoice.clientBankName && a.iban === initial.invoice.clientIban
+      );
+      return match?.id ?? null;
+    }
+    return null;
+  });
 
   // Top-5 most-used projects from past invoices
   const pastProjects = useMemo(() => {
@@ -67,7 +83,7 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
     setValue,
     formState: { errors },
   } = useForm<InvoiceFormData>({
-    resolver: zodResolver(invoiceSchema),
+    resolver: zodResolver(invoiceSchema) as Resolver<InvoiceFormData>,
     defaultValues: initial?.invoice ?? {
       id: invoiceId,
       number: defaultNumber,
@@ -85,6 +101,8 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
       linkedTransactionId: '',
       notes: '',
       businessEntityId: '',
+      clientBankName: '',
+      clientIban: '',
       createdAt: '',
       updatedAt: '',
     },
@@ -217,8 +235,38 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
     setValue('clientId', clientId);
     setValue('clientName', client?.name ?? '');
     if (client?.defaultProject) setValue('project', client.defaultProject);
-    if (client?.defaultCurrency) setValue('currency', client.defaultCurrency);
+    // Reset account — AccountCombobox will auto-select if only 1 match
+    setSelectedAccountId(null);
+    setValue('clientBankName', '');
+    setValue('clientIban', '');
   };
+
+  // AccountCombobox callback
+  const handleAccountSelect = (acc: ClientAccount) => {
+    setSelectedAccountId(acc.id);
+    setValue('clientBankName', acc.bankName);
+    setValue('clientIban', acc.iban);
+  };
+
+  // Auto-select when currency changes and exactly 1 account matches
+  const watchedCurrency = watch('currency');
+  const watchedClientId = watch('clientId');
+  useEffect(() => {
+    if (!watchedClientId) return;
+    const client = clients.find((c) => c.id === watchedClientId);
+    if (!client) return;
+    const matching = (client.accounts ?? []).filter((a) => a.currency === watchedCurrency);
+    if (matching.length === 1) {
+      setSelectedAccountId(matching[0].id);
+      setValue('clientBankName', matching[0].bankName);
+      setValue('clientIban', matching[0].iban);
+    } else {
+      setSelectedAccountId(null);
+      setValue('clientBankName', '');
+      setValue('clientIban', '');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedCurrency, watchedClientId]);
 
   const onSubmit = async (data: InvoiceFormData) => {
     // If creating invoice AND immediately creating a transaction, mark invoice as paid
@@ -253,9 +301,48 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
         taxRate,
         taxAmount: Math.round(amountGEL * taxRate * 100) / 100,
         project: data.project,
+        clientBankName: data.clientBankName ?? '',
+        clientIban: data.clientIban ?? '',
         createdAt: '',
         updatedAt: '',
       });
+    }
+
+    // ─── Bidirectional sync: update linked transaction on edit ───
+    if (isEdit && data.linkedTransactionId) {
+      const txIdx = transactions.findIndex((tx) => tx.id === data.linkedTransactionId);
+      if (txIdx >= 0) {
+        const tx = transactions[txIdx];
+        const needsUpdate =
+          tx.clientBankName !== (data.clientBankName ?? '') ||
+          tx.clientIban !== (data.clientIban ?? '') ||
+          tx.currency !== data.currency ||
+          tx.amountOriginal !== data.total;
+        if (needsUpdate) {
+          let nbgRate = tx.nbgRate;
+          let amountGEL = tx.amountGEL;
+          let taxAmount = tx.taxAmount;
+          // Recalc if currency or amount changed
+          if (tx.currency !== data.currency || tx.amountOriginal !== data.total) {
+            nbgRate = data.currency === 'GEL' ? 1 : ((await fetchNBGRate(data.currency, tx.date)) || 1);
+            amountGEL = Math.round(data.total * nbgRate * 100) / 100;
+            taxAmount = Math.round(amountGEL * tx.taxRate * 100) / 100;
+          }
+          await updateTransaction({
+            data: {
+              ...tx,
+              clientBankName: data.clientBankName ?? '',
+              clientIban: data.clientIban ?? '',
+              currency: data.currency,
+              amountOriginal: data.total,
+              nbgRate,
+              amountGEL,
+              taxAmount,
+            },
+            rowIndex: txIdx + 2, // 1-indexed, skip header
+          });
+        }
+      }
     }
 
     onDone();
@@ -322,7 +409,7 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
           </div>
         </div>
 
-        {/* Row 2: Client · Project · Entity */}
+        {/* Row 2: Client · Account · Project · Entity */}
         <div className="invoice-form__field-group invoice-form__field-group--divider">
           <div className="invoice-form__client">
             <ClientCombobox
@@ -331,6 +418,16 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
               onChange={handleClientSelect}
               error={errors.clientName?.message}
             />
+
+            {/* ── Client account picker (AccountCombobox) ── */}
+            <AccountCombobox
+              clients={clients}
+              clientId={watch('clientId')}
+              currency={watch('currency')}
+              selectedAccountId={selectedAccountId}
+              onChange={handleAccountSelect}
+            />
+
             <Input
               label={t['invoice_project']}
               list="inv-project-list"

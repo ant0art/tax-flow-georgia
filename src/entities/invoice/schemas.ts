@@ -28,6 +28,9 @@ export const invoiceSchema = z.object({
   linkedTransactionId: z.string(),
   notes: z.string(),
   businessEntityId: z.string(),
+  // Snapshot of client bank details at invoice creation time (immutable)
+  clientBankName: z.string().optional().default(''),
+  clientIban: z.string().optional().default(''),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -38,7 +41,7 @@ export const INVOICE_FIELDS: (keyof InvoiceFormData)[] = [
   'id', 'number', 'clientId', 'clientName', 'date', 'dueDate',
   'currency', 'subtotal', 'vatText', 'vatAmount', 'total',
   'project', 'status', 'linkedTransactionId', 'notes',
-  'businessEntityId', 'createdAt', 'updatedAt',
+  'businessEntityId', 'clientBankName', 'clientIban', 'createdAt', 'updatedAt',
 ];
 
 export const ITEM_FIELDS: (keyof InvoiceItem)[] = [

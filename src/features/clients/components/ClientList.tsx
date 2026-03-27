@@ -74,13 +74,23 @@ export function ClientList() {
                 {c.email && <span className="client-card__email">{c.email}</span>}
               </div>
               <div className="client-card__meta">
-                {c.defaultCurrency && (
-                  <span className="client-card__badge">{c.defaultCurrency}</span>
-                )}
+                {c.accounts && c.accounts.length > 0 ? (
+                  <>
+                    {c.accounts.slice(0, 4).map((acc) => (
+                      <span key={acc.id} className="client-card__badge">{acc.currency}</span>
+                    ))}
+                    {c.accounts.length > 4 && (
+                      <span className="client-card__badge client-card__badge--more">
+                        +{c.accounts.length - 4}
+                      </span>
+                    )}
+                  </>
+                ) : null}
                 {c.defaultProject && (
                   <span className="client-card__project">{c.defaultProject}</span>
                 )}
               </div>
+
               <div className="client-card__actions">
                 <Button
                   size="sm"

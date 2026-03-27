@@ -3,7 +3,6 @@ import { pdf } from '@react-pdf/renderer';
 import { InvoicePDF } from './InvoicePDF';
 import type { InvoiceFormData, InvoiceItem } from '@/entities/invoice/schemas';
 import { useSettings } from '@/features/settings/hooks/useSettings';
-import { useClients } from '@/features/clients/hooks/useClients';
 import { Button } from '@/shared/ui/Button';
 import { Icon } from '@/shared/ui/Icon';
 import { useToastStore } from '@/shared/ui/Toast.store';
@@ -16,7 +15,6 @@ interface Props {
 
 export function InvoicePDFButton({ invoice, items }: Props) {
   const { settings } = useSettings();
-  const { clients } = useClients();
   const [loading, setLoading] = useState(false);
   const t = useT();
 
@@ -41,10 +39,9 @@ export function InvoicePDFButton({ invoice, items }: Props) {
           }
         : settings ?? undefined;
 
-      // Resolve client bank details
-      const clientData = clients.find((c) => c.id === invoice.clientId);
-      const clientPdf = clientData
-        ? { bankName: clientData.bankName, iban: clientData.iban }
+      // Use bank details snapshotted at invoice creation time for immutability
+      const clientPdf = (invoice.clientBankName || invoice.clientIban)
+        ? { bankName: invoice.clientBankName, iban: invoice.clientIban }
         : undefined;
 
       const blob = await pdf(

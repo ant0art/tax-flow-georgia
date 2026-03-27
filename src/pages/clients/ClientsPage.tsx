@@ -37,7 +37,7 @@ export function ClientsPage() {
   };
 
   const availableCurrencies = useMemo(
-    () => [...new Set(clients.map((c) => c.defaultCurrency).filter(Boolean))].sort(),
+    () => [...new Set(clients.flatMap((c) => (c.accounts ?? []).map((a) => a.currency)).filter(Boolean))].sort(),
     [clients]
   );
 
@@ -48,7 +48,7 @@ export function ClientsPage() {
         !q ||
         c.name.toLowerCase().includes(q) ||
         (c.defaultProject ?? '').toLowerCase().includes(q);
-      const matchesCurrency = !currencyFilter || c.defaultCurrency === currencyFilter;
+      const matchesCurrency = !currencyFilter || (c.accounts ?? []).some((a) => a.currency === currencyFilter);
       return matchesSearch && matchesCurrency;
     });
   }, [clients, search, currencyFilter]);
@@ -153,10 +153,15 @@ export function ClientsPage() {
                   </div>
                   <strong className="client-card__name">{c.name}</strong>
                   {c.email && <span className="client-card__email">{c.email}</span>}
-                  {(c.defaultCurrency || c.defaultProject) && (
+                  {((c.accounts ?? []).length > 0 || c.defaultProject) && (
                     <div className="client-card__meta">
-                      {c.defaultCurrency && (
-                        <span className="client-card__badge">{c.defaultCurrency}</span>
+                      {(c.accounts ?? []).slice(0, 4).map((acc) => (
+                        <span key={acc.id} className="client-card__badge">{acc.currency}</span>
+                      ))}
+                      {(c.accounts ?? []).length > 4 && (
+                        <span className="client-card__badge client-card__badge--more">
+                          +{(c.accounts ?? []).length - 4}
+                        </span>
                       )}
                       {c.defaultProject && (
                         <span className="client-card__project">{c.defaultProject}</span>

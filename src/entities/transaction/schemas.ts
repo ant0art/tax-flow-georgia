@@ -16,6 +16,9 @@ export const transactionSchema = z.object({
   project: z.string(),
   createdAt: z.string(),
   updatedAt: z.string(),
+  // Snapshot of client bank details (synced with linked invoice)
+  clientBankName: z.string().optional().default(''),
+  clientIban: z.string().optional().default(''),
 });
 
 export type TransactionFormData = z.infer<typeof transactionSchema>;
@@ -24,4 +27,6 @@ export const TRANSACTION_FIELDS: (keyof TransactionFormData)[] = [
   'id', 'date', 'invoiceId', 'invoiceNumber', 'clientName',
   'description', 'amountOriginal', 'currency', 'nbgRate', 'amountGEL',
   'taxRate', 'taxAmount', 'project', 'createdAt', 'updatedAt',
+  'clientBankName', 'clientIban', // NEW — appended last for sheet compat
 ];
+
