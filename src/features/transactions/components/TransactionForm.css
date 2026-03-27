@@ -7,6 +7,7 @@
   border-radius: var(--radius-lg);
   padding: var(--space-4) var(--space-5);
   box-shadow: var(--shadow-1);
+  max-width: 900px;
 }
 
 .transaction-form__title {
@@ -27,15 +28,24 @@
   gap: var(--space-3);
 }
 
+/* Description row: description gets 2x space, project stays compact */
+.transaction-form__grid--desc {
+  grid-template-columns: 2fr 1fr;
+}
+
 @media (max-width: 639px) {
   .transaction-form__grid { grid-template-columns: 1fr; }
 }
 
-/* Row 2: Amount + Currency + NBG Rate + Computed */
-.transaction-form__amounts {
+/* Inner row: Amount + Currency + NBG Rate (inside the 2fr left column) */
+.transaction-form__amounts-inner {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 0.7fr;
   gap: var(--space-3);
+}
+
+@media (max-width: 639px) {
+  .transaction-form__amounts-inner { grid-template-columns: 1fr 1fr; }
 }
 
 @media (max-width: 900px) {

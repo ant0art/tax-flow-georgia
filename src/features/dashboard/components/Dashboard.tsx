@@ -112,7 +112,7 @@ export function Dashboard() {
           >
             {showQuickAdd
               ? <><Icon name="x" size={14} /> Cancel</>
-              : <><Icon name="plus" size={14} /> {t['transaction_add']}</>
+              : t['transaction_add']
             }
           </Button>
         </div>

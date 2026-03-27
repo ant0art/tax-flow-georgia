@@ -8,10 +8,9 @@ import { useT } from '@/shared/i18n/useT';
 import '@/features/clients/components/ClientList.css';
 import './ClientsPage.css';
 
-const CURRENCIES = ['USD', 'EUR', 'GBP', 'GEL'] as const;
 
 export function ClientsPage() {
-  const { clients, isLoading, addClient, updateClient, deleteClient } = useClients();
+  const { clients, isLoading, isError, addClient, updateClient, deleteClient } = useClients();
   const t = useT();
 
   const [showForm, setShowForm] = useState(false);
@@ -35,6 +34,11 @@ export function ClientsPage() {
       await deleteClient(rowIndex);
     }
   };
+
+  const availableCurrencies = useMemo(
+    () => [...new Set(clients.map((c) => c.defaultCurrency).filter(Boolean))].sort(),
+    [clients]
+  );
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -92,7 +96,7 @@ export function ClientsPage() {
             aria-label={t['clients_filter_currency']}
           >
             <option value="">{t['clients_filter_all']}</option>
-            {CURRENCIES.map((c) => (
+            {availableCurrencies.map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
           </select>
@@ -114,6 +118,11 @@ export function ClientsPage() {
       {/* ── Content ── */}
       {isLoading ? (
         <div className="clients-skeleton">{t['loading_clients']}</div>
+      ) : isError ? (
+        <div className="client-list__empty" style={{ color: 'var(--color-error, #e05050)' }}>
+          <p>⚠ Failed to load clients. Google Sheets API may be temporarily unavailable.</p>
+          <p style={{ fontSize: 12, marginTop: 4, color: 'var(--color-text-tertiary)' }}>Please wait a moment and refresh the page.</p>
+        </div>
       ) : filtered.length === 0 && !showForm ? (
         <div className="client-list__empty">
           <p>{search || currencyFilter ? t['clients_no_match'] : t['clients_empty']}</p>
@@ -134,34 +143,28 @@ export function ClientsPage() {
               const rowIndex = clients.indexOf(c) + 2;
               return (
                 <div key={c.id} className="client-card">
-                  <div className="client-card__main">
-                    <strong className="client-card__name">{c.name}</strong>
-                    {c.email && <span className="client-card__email">{c.email}</span>}
-                  </div>
-                  <div className="client-card__meta">
-                    {c.defaultCurrency && (
-                      <span className="client-card__badge">{c.defaultCurrency}</span>
-                    )}
-                    {c.defaultProject && (
-                      <span className="client-card__project">{c.defaultProject}</span>
-                    )}
-                  </div>
-                  <div className="client-card__actions">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setEditItem({ data: c, rowIndex })}
-                    >
-                      <Icon name="edit" size={15} />
+                  <div className="card-actions">
+                    <Button size="sm" variant="ghost" className="action-btn--edit"
+                      onClick={() => setEditItem({ data: c, rowIndex })} title="Edit">
+                      <Icon name="edit" size={13} />
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleDelete(rowIndex)}
-                    >
-                      <Icon name="trash" size={15} />
+                    <Button size="sm" variant="ghost" className="action-btn--delete"
+                      onClick={() => handleDelete(rowIndex)} title="Delete">
+                      <Icon name="trash" size={13} />
                     </Button>
                   </div>
+                  <strong className="client-card__name">{c.name}</strong>
+                  {c.email && <span className="client-card__email">{c.email}</span>}
+                  {(c.defaultCurrency || c.defaultProject) && (
+                    <div className="client-card__meta">
+                      {c.defaultCurrency && (
+                        <span className="client-card__badge">{c.defaultCurrency}</span>
+                      )}
+                      {c.defaultProject && (
+                        <span className="client-card__project">{c.defaultProject}</span>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}

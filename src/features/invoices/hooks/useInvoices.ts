@@ -139,6 +139,38 @@ export function useInvoices() {
     onError: () => addToast('Ошибка удаления', 'error'),
   });
 
+  const changeStatus = useMutation({
+    mutationFn: async ({
+      id,
+      rowIndex,
+      status,
+    }: {
+      id: string;
+      rowIndex: number;
+      status: string;
+    }) => {
+      // Read the current row, update just status + updatedAt
+      const client = getClient();
+      const rows = await client.getSheet('invoices');
+      const currentRow = rows[rowIndex - 1] ?? []; // rowIndex is 1-indexed (header=row1, first data=row2)
+      const now = new Date().toISOString().split('T')[0];
+      const statusIdx = INVOICE_FIELDS.indexOf('status');
+      const updatedAtIdx = INVOICE_FIELDS.indexOf('updatedAt');
+      const newRow = [...currentRow];
+      newRow[statusIdx] = status;
+      newRow[updatedAtIdx] = now;
+      // Pad row to match field count
+      while (newRow.length < INVOICE_FIELDS.length) newRow.push('');
+      await client.updateRow('invoices', rowIndex, newRow.slice(0, INVOICE_FIELDS.length));
+      return id;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['invoices'] });
+      addToast('Статус инвойса обновлён', 'success');
+    },
+    onError: () => addToast('Ошибка при обновлении статуса', 'error'),
+  });
+
   return {
     invoices: invoicesQuery.data ?? [],
     items: itemsQuery.data ?? [],
@@ -146,7 +178,9 @@ export function useInvoices() {
     saveInvoice: saveInvoice.mutateAsync,
     isSaving: saveInvoice.isPending,
     deleteInvoice: deleteInvoice.mutateAsync,
+    changeStatus: changeStatus.mutateAsync,
     getItemsForInvoice: (invoiceId: string) =>
       (itemsQuery.data ?? []).filter((i) => i.invoiceId === invoiceId),
   };
 }
+

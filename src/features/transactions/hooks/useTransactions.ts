@@ -51,6 +51,22 @@ export function useTransactions() {
     onError: () => addToast('Ошибка при добавлении транзакции', 'error'),
   });
 
+  const updateTransaction = useMutation({
+    mutationFn: async ({ data, rowIndex }: { data: TransactionFormData; rowIndex: number }) => {
+      const now = new Date().toISOString().split('T')[0];
+      const row = TRANSACTION_FIELDS.map((f) => {
+        if (f === 'updatedAt') return now;
+        return String(data[f] ?? '');
+      });
+      await getClient().updateRow('transactions', rowIndex, row);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['transactions'] });
+      addToast('Транзакция обновлена', 'success');
+    },
+    onError: () => addToast('Ошибка при обновлении транзакции', 'error'),
+  });
+
   const deleteTransaction = useMutation({
     mutationFn: async (rowIndex: number) => {
       await getClient().deleteRow('transactions', rowIndex);
@@ -66,6 +82,7 @@ export function useTransactions() {
     transactions: query.data ?? [],
     isLoading: query.isLoading,
     addTransaction: addTransaction.mutateAsync,
+    updateTransaction: updateTransaction.mutateAsync,
     deleteTransaction: deleteTransaction.mutateAsync,
   };
 }

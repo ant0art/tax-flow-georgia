@@ -81,6 +81,7 @@ export function useClients() {
   return {
     clients: query.data ?? [],
     isLoading: query.isLoading,
+    isError: query.isError,
     addClient: addClient.mutateAsync,
     updateClient: updateClient.mutateAsync,
     deleteClient: deleteClient.mutateAsync,

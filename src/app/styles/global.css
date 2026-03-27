@@ -209,4 +209,69 @@ html[data-theme] * {
   color: var(--color-text-secondary);
 }
 
+/* ═══════════════════════════════════════════════
+   CARD ACTIONS — inset bottom-right corner
+   Parent card must have: position:relative; overflow:hidden
+   The border-top + border-left form an L-bracket naturally
+   clipped by the card's border-radius.
+   ═══════════════════════════════════════════════ */
+.card-actions {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 3px;
+  border-top: 1px solid var(--color-border);
+  border-left: 1px solid var(--color-border);
+  background: var(--color-surface-raised, var(--color-surface));
+  border-radius: var(--radius-md) 0 0 0; /* top-left only — rest clipped by card */
+  overflow: hidden;   /* clip button hover bg within panel borders */
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(2px, 2px);
+  transition:
+    opacity var(--duration-fast) var(--easing-default),
+    transform var(--duration-fast) var(--easing-default);
+  z-index: 2;
+}
 
+/* Reveal on pointer hover */
+*:hover > .card-actions,
+*:focus-within > .card-actions {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(0, 0);
+}
+
+/* Touch devices: always visible (no hover available) */
+@media (hover: none) {
+  .card-actions {
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
+  }
+  /* tx-rows: amounts occupy bottom-right — keep actions hidden on touch */
+  .tx-row .card-actions {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+/* ── Semantic color modifiers ── */
+.action-btn--edit {
+  color: var(--color-accent) !important;
+}
+.action-btn--edit:hover {
+  background: rgba(75, 96, 127, 0.12) !important;
+  color: var(--color-accent) !important;
+}
+
+.action-btn--delete {
+  color: hsl(4 72% 55%) !important;
+}
+.action-btn--delete:hover {
+  background: rgba(220, 60, 50, 0.10) !important;
+  color: hsl(4 72% 55%) !important;
+}

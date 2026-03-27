@@ -11,9 +11,10 @@ interface ClientComboboxProps {
   value: string; // clientId
   onChange: (clientId: string) => void;
   error?: string;
+  isLoading?: boolean;
 }
 
-export function ClientCombobox({ clients, value, onChange, error }: ClientComboboxProps) {
+export function ClientCombobox({ clients, value, onChange, error, isLoading }: ClientComboboxProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -191,7 +192,12 @@ export function ClientCombobox({ clients, value, onChange, error }: ClientCombob
 
       {open && (
         <div className="combobox__dropdown" ref={listRef}>
-          {filtered.length === 0 ? (
+          {isLoading ? (
+            <div className="combobox__empty">
+              <Icon name="loader" size={13} className="icon--spin" />
+              Loading...
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="combobox__empty">
               {t['clients_empty'] ?? 'No clients found'}
             </div>

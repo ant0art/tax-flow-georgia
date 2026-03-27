@@ -23,72 +23,103 @@
   color: var(--color-text-secondary);
 }
 
+/* ── Cards grid — compact 4-column ── */
 .client-cards {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-3);
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2);
 }
 
-@media (min-width: 768px) {
-  .client-cards {
-    grid-template-columns: 1fr 1fr;
-  }
+@media (min-width: 900px) {
+  .client-cards { grid-template-columns: repeat(3, 1fr); }
 }
 
+@media (min-width: 1200px) {
+  .client-cards { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ── Card ── */
 .client-card {
+  position: relative;
+  overflow: hidden;   /* clips .card-actions into bottom-right corner */
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-4);
+  gap: var(--space-1);
+  padding: 10px 12px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   transition: box-shadow var(--duration-fast) var(--easing-default);
+  min-width: 0;
 }
 
 .client-card:hover {
   box-shadow: var(--shadow-2);
 }
 
+/* Name row: name + actions side by side */
 .client-card__main {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-width: 0;
 }
 
 .client-card__name {
-  font: var(--text-h3);
+  font-size: 13px;
+  font-weight: 600;
   color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1;
 }
 
 .client-card__email {
-  font: var(--text-small);
+  font: var(--text-caption);
   color: var(--color-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+/* Meta (currency badge + project) */
 .client-card__meta {
   display: flex;
+  align-items: center;
   gap: var(--space-2);
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  min-width: 0;
 }
 
 .client-card__badge {
-  font: var(--text-caption);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
   background: var(--color-surface-inset);
-  padding: 2px var(--space-2);
+  padding: 1px 5px;
   border-radius: var(--radius-sm);
   color: var(--color-accent);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .client-card__project {
   font: var(--text-caption);
   color: var(--color-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+/* Actions inline with name */
 .client-card__actions {
   display: flex;
-  gap: var(--space-1);
-  margin-top: auto;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
 }
 
 .clients-skeleton {

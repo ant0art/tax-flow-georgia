@@ -8,6 +8,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  max-width: 960px;   /* keeps New button near content, not at screen edge */
 }
 
 .invoice-list__header h1 { font: var(--text-h1); }
@@ -17,6 +18,7 @@
   display: flex;
   gap: var(--space-2);
   flex-wrap: wrap;
+  max-width: 960px;
 }
 
 .filter-chip {
@@ -55,6 +57,8 @@
 
 /* Card */
 .invoice-card {
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -84,18 +88,88 @@
   color: var(--color-text-tertiary);
 }
 
-.invoice-card__status {
-  font: var(--text-caption);
-  font-weight: 600;
-  padding: 2px var(--space-2);
-  border-radius: var(--radius-sm);
-  border: 1px solid currentColor;
+/* ── StatusPicker ── */
+.status-picker {
+  position: relative;
 }
 
-.invoice-card__status--paid   { background: var(--color-success-bg); color: var(--color-success); }
-.invoice-card__status--sent   { background: rgba(75, 96, 127, 0.1); color: var(--color-accent); }
-.invoice-card__status--draft  { background: var(--color-surface-inset); color: var(--color-text-tertiary); }
-.invoice-card__status--overdue{ background: rgba(212, 137, 10, 0.1); color: var(--color-warning); }
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: var(--text-caption);
+  font-weight: 600;
+  padding: 3px var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid currentColor;
+  background: transparent;
+  cursor: pointer;
+  transition: opacity var(--duration-fast);
+}
+
+.status-badge:hover:not(:disabled) { opacity: 0.85; }
+.status-badge--disabled { cursor: default; opacity: 0.6; }
+
+.status-badge--paid    { color: var(--color-success); background: var(--color-success-bg); }
+.status-badge--sent    { color: var(--color-accent); background: rgba(75, 96, 127, 0.1); }
+.status-badge--draft   { color: var(--color-text-tertiary); background: var(--color-surface-inset); }
+.status-badge--overdue { color: var(--color-warning); background: rgba(212, 137, 10, 0.1); }
+
+.status-badge__chevron {
+  transition: transform var(--duration-fast);
+  opacity: 0.7;
+}
+
+.status-badge__chevron--open {
+  transform: rotate(180deg);
+}
+
+/* Dropdown panel */
+.status-picker__dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 200;
+  min-width: 140px;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-3);
+  padding: var(--space-1);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.status-picker__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  font: var(--text-small);
+  font-weight: 500;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--duration-fast);
+}
+
+.status-picker__option--draft   { color: var(--color-text-secondary); }
+.status-picker__option--sent    { color: var(--color-accent); }
+.status-picker__option--paid    { color: var(--color-success); }
+.status-picker__option--overdue { color: var(--color-warning); }
+
+.status-picker__option:hover {
+  background: var(--color-surface-inset);
+}
+
+.status-picker__option--active {
+  background: var(--color-surface-inset);
+  font-weight: 600;
+}
 
 .invoice-card__client {
   font-size: 14px;
@@ -132,11 +206,26 @@
 
 .invoice-list__empty {
   text-align: center;
-  padding: var(--space-8) var(--space-4);
+  padding: var(--space-10) var(--space-4);
   background: var(--color-surface);
   border: 1px dashed var(--color-border);
   border-radius: var(--radius-lg);
   color: var(--color-text-secondary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.empty-icon {
+  color: var(--color-text-tertiary);
+  opacity: 0.4;
+  margin-bottom: var(--space-2);
+}
+
+.empty-hint {
+  font: var(--text-small);
+  color: var(--color-text-tertiary);
 }
 
 .invoices-skeleton {

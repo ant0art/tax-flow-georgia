@@ -317,15 +317,51 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
                 value={item.description}
                 onChange={(e) => updateItem(idx, 'description', e.target.value)}
               />
-              <input
-                className="field__input amount"
-                inputMode="decimal"
-                placeholder="1"
-                value={itemDisplayValues[`qty-${idx}`] ?? String(item.quantity)}
-                onChange={(e) => handleAmountChange(idx, 'quantity', e.target.value)}
-                onBlur={() => handleAmountBlur(idx, 'quantity')}
-                onFocus={handleAmountFocus}
-              />
+              <div className="qty-stepper">
+                <input
+                  className="qty-stepper__input"
+                  inputMode="decimal"
+                  placeholder="1"
+                  value={itemDisplayValues[`qty-${idx}`] ?? String(item.quantity)}
+                  onChange={(e) => handleAmountChange(idx, 'quantity', e.target.value)}
+                  onBlur={() => handleAmountBlur(idx, 'quantity')}
+                  onFocus={handleAmountFocus}
+                />
+                <div className="qty-stepper__side">
+                  <button
+                    type="button"
+                    className="qty-stepper__btn"
+                    tabIndex={-1}
+                    aria-label="Increase quantity"
+                    onClick={() => {
+                      const cur = parseFloat(itemDisplayValues[`qty-${idx}`] ?? '1') || 0;
+                      const next = String(cur + 1);
+                      setItemDisplayValues((prev) => ({ ...prev, [`qty-${idx}`]: next }));
+                      updateItem(idx, 'quantity', cur + 1);
+                    }}
+                  >
+                    <svg width="8" height="6" viewBox="0 0 8 6" fill="none" aria-hidden="true">
+                      <path d="M4 0.5L7.5 5.5H0.5L4 0.5Z" fill="currentColor"/>
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    className="qty-stepper__btn"
+                    tabIndex={-1}
+                    aria-label="Decrease quantity"
+                    onClick={() => {
+                      const cur = parseFloat(itemDisplayValues[`qty-${idx}`] ?? '1') || 0;
+                      const next = String(Math.max(0, cur - 1));
+                      setItemDisplayValues((prev) => ({ ...prev, [`qty-${idx}`]: next }));
+                      updateItem(idx, 'quantity', Math.max(0, cur - 1));
+                    }}
+                  >
+                    <svg width="8" height="6" viewBox="0 0 8 6" fill="none" aria-hidden="true">
+                      <path d="M4 5.5L0.5 0.5H7.5L4 5.5Z" fill="currentColor"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
               <input
                 className="field__input amount"
                 inputMode="decimal"
