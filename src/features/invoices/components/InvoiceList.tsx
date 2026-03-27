@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useInvoices } from '@/features/invoices/hooks/useInvoices';
 import { InvoiceForm } from './InvoiceForm';
 import type { InvoiceFormData, InvoiceItem } from '@/entities/invoice/schemas';
@@ -115,6 +115,21 @@ export function InvoiceList() {
   const [amountMin, setAmountMin] = useState('');
   const [amountMax, setAmountMax] = useState('');
   const [sortBy, setSortBy] = useState('date_desc');
+  
+  // Mobile filters toggle
+  const [showFiltersMobile, setShowFiltersMobile] = useState(false);
+
+  // Infinite scroll
+  const [visibleCount, setVisibleCount] = useState(20);
+  const observer = useRef<IntersectionObserver | null>(null);
+  const lastElementRef = useCallback((node: HTMLDivElement) => {
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) setVisibleCount(prev => prev + 20);
+    });
+    if (node) observer.current.observe(node);
+  }, []);
+
 
   // Unique client list from all invoices
   const clientOptions = useMemo(() => {
@@ -168,6 +183,14 @@ export function InvoiceList() {
     }
     return sorted;
   }, [invoices, statusFilter, dateFrom, dateTo, clientFilter, amountMin, amountMax, sortBy]);
+
+  const [prevFilteredLength, setPrevFilteredLength] = useState(filtered.length);
+  if (filtered.length !== prevFilteredLength) {
+    setPrevFilteredLength(filtered.length);
+    setVisibleCount(20);
+  }
+
+  const visibleItems = filtered.slice(0, visibleCount);
 
   const handleCopy = async (inv: InvoiceFormData) => {
     const newId = crypto.randomUUID();
@@ -234,7 +257,18 @@ export function InvoiceList() {
               : invoices.length}
           </span>
         </h1>
-        <Button size="sm" onClick={() => setShowForm(true)} title={t['invoice_new']}>{t['invoice_create']}</Button>
+        <div className="list-header-actions">
+          <Button 
+            className="mobile-filter-toggle" 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setShowFiltersMobile(!showFiltersMobile)}
+            title="Toggle filters"
+          >
+            <Icon name="sliders" size={16} />
+          </Button>
+          <Button size="sm" onClick={() => setShowForm(true)} title={t['invoice_new']}>{t['invoice_create']}</Button>
+        </div>
       </div>
 
       {/* Status filter chips */}
@@ -254,7 +288,7 @@ export function InvoiceList() {
       </div>
 
       {/* Extra filters + sort */}
-      <div className="invoice-list__extra-filters">
+      <div className={`invoice-list__extra-filters ${showFiltersMobile ? 'is-open' : ''}`}>
         {/* Date range */}
         <div className="inv-filter-group">
           <label className="inv-filter-label">From</label>
@@ -355,12 +389,17 @@ export function InvoiceList() {
         </div>
       ) : (
         <div className="invoice-cards">
-          {filtered.map((inv, i) => {
+          {visibleItems.map((inv, i) => {
             const sym = CURRENCY_SYMBOL[inv.currency] ?? inv.currency;
             const rowIndex = invoices.findIndex((x) => x.id === inv.id) + 2;
             const isChanging = changingStatusId === inv.id;
+            const isLast = i === visibleItems.length - 1;
             return (
-              <div key={inv.id} className={`invoice-card invoice-card--${inv.status}`}>
+              <div 
+                key={inv.id} 
+                ref={isLast ? lastElementRef : null}
+                className={`invoice-card invoice-card--${inv.status}`}
+              >
                 <div className="invoice-card__top">
                   <span className="invoice-card__number amount">{inv.number}</span>
                   <StatusPicker
@@ -373,13 +412,15 @@ export function InvoiceList() {
                 <div className="invoice-card__client">{inv.clientName}</div>
                 {inv.project && <div className="invoice-card__project">{inv.project}</div>}
 
-                <div className="invoice-card__amount amount">
-                  {sym}{Number(inv.total).toFixed(2)}
-                </div>
-
-                <div className="invoice-card__dates">
-                  <span><Icon name="calendar" size={13} /> {inv.date}</span>
-                  <span><Icon name="clock" size={13} /> {inv.dueDate}</span>
+                {/* Dates + amount in the same bottom row */}
+                <div className="invoice-card__bottom">
+                  <div className="invoice-card__dates">
+                    <span><Icon name="calendar" size={13} /> {inv.date}</span>
+                    <span><Icon name="clock" size={13} /> {inv.dueDate}</span>
+                  </div>
+                  <span className="invoice-card__amount amount">
+                    {sym}{Number(inv.total).toFixed(2)}
+                  </span>
                 </div>
 
                 <div className="card-actions">

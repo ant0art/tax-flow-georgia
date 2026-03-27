@@ -25,6 +25,7 @@ html {
 
 body {
   min-height: 100dvh;
+  min-width: 320px;  /* prevent extreme layout breakage below 320px */
   transition: background-color var(--duration-normal) var(--easing-default),
               color var(--duration-normal) var(--easing-default);
 }
@@ -245,17 +246,30 @@ html[data-theme] * {
   transform: translate(0, 0);
 }
 
-/* Touch devices: always visible (no hover available) */
+/* Touch devices: keep absolute corner, just always visible */
 @media (hover: none) {
   .card-actions {
     opacity: 1;
     pointer-events: auto;
     transform: none;
   }
-  /* tx-rows: amounts occupy bottom-right — keep actions hidden on touch */
+  /* tx-row on mobile touch: move actions inline with date — only at narrow widths */
+}
+
+/* tx-row mobile touch inline actions — only ≤639px */
+@media (hover: none) and (max-width: 639px) {
   .tx-row .card-actions {
-    opacity: 0;
-    pointer-events: none;
+    position: static;
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
+    border-top: none;
+    border-left: none;
+    border-radius: 0;
+    background: transparent;
+    padding: 0;
+    margin-left: auto;
+    gap: 2px;
   }
 }
 

@@ -128,9 +128,18 @@
   }
 }
 
+/* At 599px, stack ALL widgets — col-span-2 becomes full-width */
 @media (max-width: 599px) {
   .dashboard__grid {
     grid-template-columns: 1fr;
+  }
+  /* Force every widget to single column — ignore saved span values */
+  .dash-widget {
+    grid-column: 1 / -1 !important;
+  }
+  /* Quick Links: auto height (matches content, no stretch) */
+  .dash-panel--links {
+    height: auto;
   }
 }
 
@@ -171,7 +180,7 @@
 
 .dashboard__chart__body {
   flex: 1;
-  min-height: 0; /* crucial: allows flex child to shrink below content size */
+  min-height: 200px; /* crucial: allows flex child to shrink below content size, but never below 200px, so it's visible when 1-col on mobile */
 }
 
 .dashboard__chart .section-title {

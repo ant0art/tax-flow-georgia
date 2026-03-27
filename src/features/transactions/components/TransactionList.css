@@ -4,7 +4,6 @@
   gap: var(--space-4);
 }
 
-/* ── Filter bar ── */
 .tx-filters {
   display: flex;
   align-items: center;
@@ -12,6 +11,17 @@
   gap: var(--space-2);
   max-width: 960px;
 }
+
+.list-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.mobile-filter-toggle {
+  display: none;
+}
+
 
 .tx-filter-select {
   height: 30px;
@@ -176,7 +186,8 @@
 .tx-row {
   position: relative;
   display: grid;
-  grid-template-columns: 96px 1fr auto;
+  grid-template-columns: 96px 1fr 52px auto;
+  grid-template-areas: "date main actions amounts";
   gap: 0;
   align-items: stretch;
   min-height: 48px;
@@ -188,12 +199,31 @@
   transition: box-shadow var(--duration-fast), background var(--duration-fast);
 }
 
+/* Actions as a grid cell — centered vertically, no border */
+.tx-row .card-actions {
+  position: static;
+  grid-area: actions;
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  padding: 0 4px;
+  gap: 2px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
 .tx-row:hover {
   box-shadow: var(--shadow-2);
   background: var(--color-surface-raised);
 }
 
 .tx-row__date {
+  grid-area: date;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -209,6 +239,7 @@
 .tx-row__date-icon { display: none; }
 
 .tx-row__main {
+  grid-area: main;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -253,6 +284,7 @@
 
 /* Amounts block — always visually anchored to right side of card */
 .tx-row__amounts {
+  grid-area: amounts;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -286,34 +318,62 @@
   white-space: nowrap;
 }
 
-/* Actions handled by global .card-actions pattern */
-
 /* ── Mobile ── */
 @media (max-width: 639px) {
   .transaction-rows { max-width: 100%; }
 
   .tx-row {
     grid-template-columns: 1fr auto;
-    grid-template-rows: auto auto auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+      "date    date-actions"
+      "main    amounts";
   }
 
+  /* Date row: text left, action buttons right */
   .tx-row__date {
-    grid-column: 1 / -1;
+    grid-area: date;
+    grid-column: 1;
+    grid-row: 1;
     flex-direction: row;
+    align-items: center;
     border-right: none;
     border-bottom: 1px solid var(--color-border);
-    padding: var(--space-1) var(--space-3);
+    padding: 4px var(--space-1) 4px var(--space-3);
   }
 
-  .tx-row__main    { grid-column: 1; }
-  .tx-row__amounts { grid-column: 2; min-width: 90px; }
-  .tx-row__actions {
-    grid-column: 1 / -1;
+  /* Slot card-actions into column 2 of the header row */
+  .tx-row .card-actions {
+    grid-area: unset;
+    grid-column: 2;
+    grid-row: 1;
+    position: static;
     flex-direction: row;
-    justify-content: flex-end;
-    border-left: none;
-    border-top: 1px solid var(--color-border);
-    min-width: auto;
+    border-left: 1px solid var(--color-border);
+    border-radius: 0;
+    padding: 0 4px;
+    align-self: stretch;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .tx-row__main    { grid-column: 1; grid-row: 2; }
+  .tx-row__amounts { grid-column: 2; grid-row: 2; min-width: 90px; }
+}
+
+@media (max-width: 639px) {
+  .mobile-filter-toggle {
+    display: inline-flex;
+  }
+  .tx-filters {
+    display: none;
+    padding: var(--space-2) var(--space-3);
+    background: var(--color-surface-inset);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+  .tx-filters.is-open {
+    display: flex;
   }
 }
 

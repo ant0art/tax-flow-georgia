@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
 import { useTransactions } from '@/features/transactions/hooks/useTransactions';
 import { TransactionForm } from './TransactionForm';
 import { Button } from '@/shared/ui/Button';
@@ -48,6 +48,20 @@ export function TransactionList() {
     setSort('date-desc');
   };
 
+  // ── Mobile filters toggle ──
+  const [showFiltersMobile, setShowFiltersMobile] = useState(false);
+
+  // ── Infinite scroll ──
+  const [visibleCount, setVisibleCount] = useState(20);
+  const observer = useRef<IntersectionObserver | null>(null);
+  const lastElementRef = useCallback((node: HTMLDivElement) => {
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) setVisibleCount(prev => prev + 20);
+    });
+    if (node) observer.current.observe(node);
+  }, []);
+
   // ── Option lists ──
   const years = useMemo(() => {
     const s = new Set(transactions.map((tx) => new Date(tx.date).getFullYear().toString()));
@@ -84,6 +98,14 @@ export function TransactionList() {
     return list;
   }, [transactions, yearFilter, monthFilter, clientFilter, currencyFilter, dateFrom, dateTo, amountMin, amountMax, sort]);
 
+  const [prevFilteredLength, setPrevFilteredLength] = useState(filtered.length);
+  if (filtered.length !== prevFilteredLength) {
+    setPrevFilteredLength(filtered.length);
+    setVisibleCount(20);
+  }
+
+  const visibleItems = filtered.slice(0, visibleCount);
+
   // ── Stats from FILTERED data ──
   const stats = useMemo(() => ({
     totalGEL: filtered.reduce((s, tx) => s + tx.amountGEL, 0),
@@ -119,20 +141,32 @@ export function TransactionList() {
               : transactions.length}
           </span>
         </h1>
-        {!showForm && (
-          <Button size="sm" onClick={() => setShowForm(true)}>
-            {t['transaction_add']}
-          </Button>
-        )}
+        <div className="list-header-actions">
+          {!showForm && transactions.length > 0 && (
+            <Button 
+              className="mobile-filter-toggle" 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setShowFiltersMobile(!showFiltersMobile)}
+              title="Toggle filters"
+            >
+              <Icon name="sliders" size={16} />
+            </Button>
+          )}
+          {!showForm && (
+            <Button size="sm" onClick={() => setShowForm(true)}>
+              {t['transaction_add']}
+            </Button>
+          )}
+        </div>
       </div>
-
 
       {/* New transaction form (inline) */}
       {showForm && <TransactionForm onDone={() => setShowForm(false)} />}
 
       {/* Filter bar */}
       {transactions.length > 0 && (
-        <div className="tx-filters">
+        <div className={`tx-filters ${showFiltersMobile ? 'is-open' : ''}`}>
           <select
             className="tx-filter-select"
             value={yearFilter}
@@ -269,13 +303,18 @@ export function TransactionList() {
         </div>
       ) : (
         <div className="transaction-rows">
-          {filtered.map((tx) => {
+          {visibleItems.map((tx, i) => {
             // Find original index in full list for rowIndex calculation
             const originalIndex = transactions.findIndex((t2) => t2.id === tx.id);
             const rowIndex = originalIndex + 2; // 1-indexed sheet, skip header
             const sym = CURRENCY_SYMBOL[tx.currency] ?? tx.currency;
+            const isLast = i === visibleItems.length - 1;
             return (
-              <div key={tx.id} className="tx-row">
+              <div 
+                key={tx.id} 
+                className="tx-row"
+                ref={isLast ? lastElementRef : null}
+              >
                 <div className="tx-row__date">
                   {tx.date}
                 </div>

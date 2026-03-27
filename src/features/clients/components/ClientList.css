@@ -26,8 +26,12 @@
 /* ── Cards grid — compact 4-column ── */
 .client-cards {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: var(--space-2);
+}
+
+@media (min-width: 600px) {
+  .client-cards { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (min-width: 900px) {
@@ -60,7 +64,7 @@
 /* Name row: name + actions side by side */
 .client-card__main {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-2);
   min-width: 0;
