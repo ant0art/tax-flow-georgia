@@ -1,6 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { clientSchema, type ClientFormData, CLIENT_DEFAULTS } from '@/entities/client/schemas';
+import { CURRENCIES, currencyLabel } from '@/shared/lib/currencies';
 import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
 import { useT } from '@/shared/i18n/useT';
@@ -67,10 +68,9 @@ export function ClientForm({ initial, onSubmit, onCancel }: ClientFormProps) {
             {t['client_default_currency'] ?? 'Default currency'}
           </label>
           <select className="field__select" id="client-currency" {...register('defaultCurrency')}>
-            <option value="USD">USD ($)</option>
-            <option value="EUR">EUR (€)</option>
-            <option value="GBP">GBP (£)</option>
-            <option value="GEL">GEL (₾)</option>
+            {CURRENCIES.map((c) => (
+              <option key={c.code} value={c.code}>{currencyLabel(c)}</option>
+            ))}
           </select>
         </div>
         <Input

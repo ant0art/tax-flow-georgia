@@ -6,8 +6,10 @@ import { useTransactions } from '@/features/transactions/hooks/useTransactions';
 import { useInvoices } from '@/features/invoices/hooks/useInvoices';
 import { useSettings } from '@/features/settings/hooks/useSettings';
 import { fetchNBGRate } from '@/shared/api/nbg-rate';
+import { CURRENCIES, currencyLabel } from '@/shared/lib/currencies';
 import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
+import { DatePicker } from '@/shared/ui/DatePicker';
 import { useT } from '@/shared/i18n/useT';
 import { Icon } from '@/shared/ui/Icon';
 import './TransactionForm.css';
@@ -106,10 +108,11 @@ export function TransactionForm({ onDone }: Props) {
   return (
     <form className="transaction-form" onSubmit={handleSubmit(onSubmit)}>
       <h3 className="transaction-form__title">
-        <Icon name="dollar-sign" size={18} />
+        <Icon name="dollar-sign" size={16} />
         {t['transaction_new']}
       </h3>
 
+      {/* Link to invoice */}
       {unpaidInvoices.length > 0 && (
         <div className="field">
           <label className="field__label" htmlFor="tx-invoice">{t['transaction_link_invoice']}</label>
@@ -124,13 +127,20 @@ export function TransactionForm({ onDone }: Props) {
         </div>
       )}
 
+      {/* Row 1: Date + Client */}
       <div className="transaction-form__grid">
-        <Input label={t['transaction_date']} type="date" error={errors.date?.message} {...register('date')} />
+        <DatePicker
+          label={t['transaction_date']}
+          value={date}
+          onChange={(v) => setValue('date', v)}
+          error={errors.date?.message}
+        />
         <Input label={t['transaction_client']} error={errors.clientName?.message} {...register('clientName')} />
         <Input label={t['transaction_description']} error={errors.description?.message} {...register('description')} />
         <Input label={t['transaction_project']} {...register('project')} />
       </div>
 
+      {/* Row 2: Amounts */}
       <div className="transaction-form__amounts">
         <Input
           label={t['transaction_amount']}
@@ -143,10 +153,9 @@ export function TransactionForm({ onDone }: Props) {
         <div className="field">
           <label className="field__label" htmlFor="tx-currency">{t['transaction_currency']}</label>
           <select className="field__select" id="tx-currency" {...register('currency')}>
-            <option value="USD">USD ($)</option>
-            <option value="EUR">EUR (€)</option>
-            <option value="GBP">GBP (£)</option>
-            <option value="GEL">GEL (₾)</option>
+            {CURRENCIES.map((c) => (
+              <option key={c.code} value={c.code}>{currencyLabel(c)}</option>
+            ))}
           </select>
         </div>
         <div className="field-with-indicator">
@@ -155,7 +164,7 @@ export function TransactionForm({ onDone }: Props) {
             type="number"
             step="0.0001"
             mono
-            hint={t['transaction_nbg_auto']}
+            hint={fetchingRate ? undefined : t['transaction_nbg_auto']}
             error={errors.nbgRate?.message}
             {...register('nbgRate', { valueAsNumber: true })}
           />
@@ -165,6 +174,8 @@ export function TransactionForm({ onDone }: Props) {
             </span>
           )}
         </div>
+
+        {/* Computed result */}
         <div className="transaction-form__computed">
           <div className="transaction-form__gel">
             <span className="field__label">{t['transaction_gel_amount']}</span>

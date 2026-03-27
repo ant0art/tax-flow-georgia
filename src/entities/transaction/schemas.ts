@@ -8,7 +8,7 @@ export const transactionSchema = z.object({
   clientName: z.string(),
   description: z.string().min(1, 'Укажите описание'),
   amountOriginal: z.number().min(0.01, 'Сумма > 0'),
-  currency: z.enum(['USD', 'EUR', 'GBP', 'GEL']),
+  currency: z.string().min(1, 'Укажите валюту'),
   nbgRate: z.number().min(0, 'Курс ≥ 0'),
   amountGEL: z.number(),
   taxRate: z.number(),

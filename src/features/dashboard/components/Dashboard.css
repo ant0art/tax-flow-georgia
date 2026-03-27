@@ -6,17 +6,69 @@
 
 .dashboard__header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: var(--space-3);
 }
 
-.dashboard__header h1 { font: var(--text-h1); }
+.dashboard__title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.dashboard__header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.dashboard__year-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  background: var(--color-surface-inset);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 2px;
+}
+
+.dashboard__year-label {
+  font: var(--text-small);
+  font-weight: 700;
+  color: var(--color-text);
+  min-width: 44px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.dashboard__year-btn {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  border-radius: calc(var(--radius-md) - 2px);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background var(--duration-fast), color var(--duration-fast);
+}
+
+.dashboard__year-btn:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
 
 .dashboard__user {
-  font: var(--text-body);
+  font: var(--text-small);
   color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
 /* Stats grid */

@@ -18,7 +18,7 @@ export const invoiceSchema = z.object({
   clientName: z.string().min(1, 'Выберите клиента'),
   date: z.string().min(1, 'Укажите дату'),
   dueDate: z.string().min(1, 'Укажите срок оплаты'),
-  currency: z.enum(['USD', 'EUR', 'GBP', 'GEL']),
+  currency: z.string().min(1, 'Укажите валюту'),
   subtotal: z.number(),
   vatText: z.string(),
   vatAmount: z.number(),

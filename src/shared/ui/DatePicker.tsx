@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { Icon } from '@/shared/ui/Icon';
 import './DatePicker.css';
 
 interface DatePickerProps {
@@ -8,6 +9,7 @@ interface DatePickerProps {
   error?: string;
 }
 
+// Monday = 0 … Sunday = 6
 const DAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
 function getDaysInMonth(year: number, month: number): number {
@@ -57,46 +59,33 @@ export function DatePicker({ label, value, onChange, error }: DatePickerProps) {
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
-  // Keep calendar within viewport
-  const adjustPosition = useCallback(() => {
+  // Keep calendar within viewport by running inline after each open
+  useEffect(() => {
+    if (!open) return;
     const cal = calendarRef.current;
     if (!cal) return;
-
-    // Reset to default position
-    cal.style.left = '0';
-    cal.style.right = 'auto';
-    cal.style.top = '100%';
-    cal.style.bottom = 'auto';
-
-    const calRect = cal.getBoundingClientRect();
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-
-    if (calRect.right > vw - 8) {
-      cal.style.left = 'auto';
-      cal.style.right = '0';
-    }
-    if (calRect.bottom > vh - 8) {
-      cal.style.top = 'auto';
-      cal.style.bottom = '100%';
-    }
-  }, []);
+    requestAnimationFrame(() => {
+      cal.style.left = '0';
+      cal.style.right = 'auto';
+      cal.style.top = '100%';
+      cal.style.bottom = 'auto';
+      const calRect = cal.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      if (calRect.right > vw - 8) { cal.style.left = 'auto'; cal.style.right = '0'; }
+      if (calRect.bottom > vh - 8) { cal.style.top = 'auto'; cal.style.bottom = '100%'; }
+    });
+  }, [open]);
 
   // When opening, sync calendar view to current value
-  const handleOpen = useCallback(() => {
+  const handleOpen = () => {
     const p = parseDate(value);
     if (p) {
       setViewYear(p.year);
       setViewMonth(p.month);
     }
     setOpen(true);
-  }, [value]);
-
-  useEffect(() => {
-    if (open) {
-      requestAnimationFrame(adjustPosition);
-    }
-  }, [open, adjustPosition]);
+  };
 
   const daysInMonth = getDaysInMonth(viewYear, viewMonth);
   const firstDay = getFirstDayOfMonth(viewYear, viewMonth);
@@ -111,6 +100,9 @@ export function DatePicker({ label, value, onChange, error }: DatePickerProps) {
     else setViewMonth(viewMonth + 1);
   };
 
+  const prevYear = () => setViewYear(viewYear - 1);
+  const nextYear = () => setViewYear(viewYear + 1);
+
   const selectDay = (day: number) => {
     onChange(formatDate(viewYear, viewMonth, day));
     setOpen(false);
@@ -120,12 +112,27 @@ export function DatePicker({ label, value, onChange, error }: DatePickerProps) {
     onChange(e.target.value);
   };
 
+  const selectToday = () => {
+    const t = new Date();
+    onChange(formatDate(t.getFullYear(), t.getMonth(), t.getDate()));
+    setOpen(false);
+  };
+
+  const clearDate = () => {
+    onChange('');
+    setOpen(false);
+  };
+
   const inputId = `dp-${label.toLowerCase().replace(/\s+/g, '-')}`;
 
   // Build day cells
   const cells: (number | null)[] = [];
   for (let i = 0; i < firstDay; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  const today = new Date();
+  const isToday = (day: number) =>
+    day === today.getDate() && viewMonth === today.getMonth() && viewYear === today.getFullYear();
 
   return (
     <div className={`field datepicker ${error ? 'field--error' : ''}`} ref={containerRef}>
@@ -148,19 +155,28 @@ export function DatePicker({ label, value, onChange, error }: DatePickerProps) {
           aria-label="Toggle calendar"
           tabIndex={-1}
         >
-          📅
+          <Icon name="calendar" size={14} />
         </button>
       </div>
 
       {open && (
         <div className="datepicker__calendar" ref={calendarRef}>
+          {/* Year navigation */}
+          <div className="datepicker__year-nav">
+            <button type="button" onClick={prevYear} className="datepicker__nav-btn" aria-label="Previous year">‹‹</button>
+            <span className="datepicker__year-label">{viewYear}</span>
+            <button type="button" onClick={nextYear} className="datepicker__nav-btn" aria-label="Next year">››</button>
+          </div>
+
+          {/* Month navigation */}
           <div className="datepicker__nav">
             <button type="button" onClick={prevMonth} className="datepicker__nav-btn">‹</button>
             <span className="datepicker__nav-label">
-              {MONTH_NAMES[viewMonth]} {viewYear}
+              {MONTH_NAMES[viewMonth]}
             </span>
             <button type="button" onClick={nextMonth} className="datepicker__nav-btn">›</button>
           </div>
+
           <div className="datepicker__weekdays">
             {DAYS.map((d) => <span key={d}>{d}</span>)}
           </div>
@@ -172,17 +188,24 @@ export function DatePicker({ label, value, onChange, error }: DatePickerProps) {
                 <button
                   key={day}
                   type="button"
-                  className={`datepicker__day${
+                  className={[
+                    'datepicker__day',
                     parsed && day === parsed.day && viewMonth === parsed.month && viewYear === parsed.year
-                      ? ' datepicker__day--selected'
-                      : ''
-                  }`}
+                      ? 'datepicker__day--selected' : '',
+                    isToday(day) && !(parsed && day === parsed.day && viewMonth === parsed.month && viewYear === parsed.year)
+                      ? 'datepicker__day--today' : '',
+                  ].filter(Boolean).join(' ')}
                   onClick={() => selectDay(day)}
                 >
                   {day}
                 </button>
               )
             )}
+          </div>
+
+          <div className="datepicker__footer">
+            <button type="button" className="datepicker__footer-btn" onClick={selectToday}>Today</button>
+            {value && <button type="button" className="datepicker__footer-btn datepicker__footer-btn--clear" onClick={clearDate}>Clear</button>}
           </div>
         </div>
       )}

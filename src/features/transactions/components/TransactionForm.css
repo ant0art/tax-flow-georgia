@@ -1,7 +1,7 @@
 .transaction-form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-3);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -18,36 +18,44 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: var(--space-2);
 }
 
+/* Row 1: Date + Client + Description + Project */
 .transaction-form__grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: var(--space-3);
 }
 
-@media (min-width: 640px) {
-  .transaction-form__grid { grid-template-columns: 1fr 1fr; }
+@media (max-width: 639px) {
+  .transaction-form__grid { grid-template-columns: 1fr; }
 }
 
+/* Row 2: Amount + Currency + NBG Rate + Computed */
 .transaction-form__amounts {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
   gap: var(--space-3);
 }
 
-@media (min-width: 640px) {
-  .transaction-form__amounts { grid-template-columns: 1fr 1fr 1fr 1fr; }
+@media (max-width: 900px) {
+  .transaction-form__amounts { grid-template-columns: 1fr 1fr; }
 }
 
+@media (max-width: 639px) {
+  .transaction-form__amounts { grid-template-columns: 1fr; }
+}
+
+/* The computed panel (Amount in GEL + Tax) */
 .transaction-form__computed {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: var(--space-2);
   padding: var(--space-3);
   background: var(--color-surface-inset);
   border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
 }
 
 .transaction-form__gel,
@@ -70,4 +78,15 @@
 .transaction-form__actions {
   display: flex;
   gap: var(--space-3);
+}
+
+.field-with-indicator {
+  position: relative;
+}
+
+.field-loading-indicator {
+  position: absolute;
+  top: calc(100% - 30px);
+  right: 10px;
+  color: var(--color-text-tertiary);
 }

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell,
@@ -6,6 +6,8 @@ import {
 import { useTransactions } from '@/features/transactions/hooks/useTransactions';
 import { useInvoices } from '@/features/invoices/hooks/useInvoices';
 import { useSettings } from '@/features/settings/hooks/useSettings';
+import { TransactionForm } from '@/features/transactions/components/TransactionForm';
+import { Button } from '@/shared/ui/Button';
 import { useT } from '@/shared/i18n/useT';
 import { Icon } from '@/shared/ui/Icon';
 import './Dashboard.css';
@@ -27,22 +29,24 @@ export function Dashboard() {
   const { settings } = useSettings();
   const t = useT();
 
-  const currentYear = new Date().getFullYear();
+  const now = new Date();
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
 
   const monthlyData = useMemo((): MonthData[] => {
     const data = MONTH_KEYS.map((k) => ({ name: t[k], income: 0, tax: 0 }));
     transactions.forEach((tx) => {
       const d = new Date(tx.date);
-      if (d.getFullYear() === currentYear) {
+      if (d.getFullYear() === selectedYear) {
         data[d.getMonth()].income += tx.amountGEL;
         data[d.getMonth()].tax += tx.taxAmount;
       }
     });
     return data;
-  }, [transactions, currentYear, t]);
+  }, [transactions, selectedYear, t]);
 
   const stats = useMemo(() => {
-    const yearTx = transactions.filter((tx) => new Date(tx.date).getFullYear() === currentYear);
+    const yearTx = transactions.filter((tx) => new Date(tx.date).getFullYear() === selectedYear);
     const totalIncome = yearTx.reduce((s, tx) => s + tx.amountGEL, 0);
     const totalTax = yearTx.reduce((s, tx) => s + tx.taxAmount, 0);
 
@@ -60,7 +64,7 @@ export function Dashboard() {
       paidCount: paidInvoices.length,
       txCount: yearTx.length,
     };
-  }, [transactions, invoices, currentYear]);
+  }, [transactions, invoices, selectedYear]);
 
   const isLoading = txLoading || invLoading;
 
@@ -71,17 +75,53 @@ export function Dashboard() {
   return (
     <div className="dashboard">
       <div className="dashboard__header">
-        <h1 className="page-title">
-          <Icon name="chart-bar" size={24} />
-          {t['dashboard_title']} {currentYear}
-        </h1>
-        {settings?.fullName && (
-          <span className="dashboard__user">
-            <Icon name="user" size={16} />
-            {settings.fullName}
-          </span>
-        )}
+        <div className="dashboard__title-row">
+          <h1 className="page-title">
+            <Icon name="chart-bar" size={22} />
+            {t['dashboard_title']}
+          </h1>
+          {/* Year navigator */}
+          <div className="dashboard__year-nav">
+            <button
+              className="dashboard__year-btn"
+              onClick={() => setSelectedYear(selectedYear - 1)}
+              aria-label="Previous year"
+            >
+              <Icon name="chevron-left" size={14} />
+            </button>
+            <span className="dashboard__year-label">{selectedYear}</span>
+            <button
+              className="dashboard__year-btn"
+              onClick={() => setSelectedYear(selectedYear + 1)}
+              aria-label="Next year"
+            >
+              <Icon name="chevron-right" size={14} />
+            </button>
+          </div>
+        </div>
+        <div className="dashboard__header-actions">
+          {settings?.fullName && (
+            <span className="dashboard__user">
+              <Icon name="user" size={14} />
+              {settings.fullName}
+            </span>
+          )}
+          <Button
+            size="sm"
+            onClick={() => setShowQuickAdd((v) => !v)}
+          >
+            {showQuickAdd
+              ? <><Icon name="x" size={14} /> Cancel</>
+              : <><Icon name="plus" size={14} /> {t['transaction_add']}</>
+            }
+          </Button>
+        </div>
       </div>
+
+      {/* Quick-add income form */}
+      {showQuickAdd && (
+        <TransactionForm onDone={() => setShowQuickAdd(false)} />
+      )}
 
       {/* Summary cards */}
       <div className="dashboard__stats">
@@ -118,7 +158,7 @@ export function Dashboard() {
         <h2 className="section-title">{t['dashboard_chart_title']}</h2>
         {stats.txCount === 0 ? (
           <div className="dashboard__chart-empty">
-            {t['dashboard_no_data'].replace('{year}', String(currentYear))}
+            {t['dashboard_no_data'].replace('{year}', String(selectedYear))}
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={320}>

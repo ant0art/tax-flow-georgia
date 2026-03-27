@@ -4,6 +4,7 @@ import { useCallback, useEffect } from 'react';
 import { settingsSchema, type SettingsFormData, SETTINGS_DEFAULTS } from '@/entities/settings/schemas';
 import { useSettings } from '@/features/settings/hooks/useSettings';
 import { useDraftPersist } from '@/shared/hooks/useDraftPersist';
+import { CURRENCIES, currencyLabel } from '@/shared/lib/currencies';
 import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
 import { useT } from '@/shared/i18n/useT';
@@ -151,10 +152,9 @@ export function SettingsForm() {
             <div className="field">
               <label className="field__label" htmlFor="defaultCurrency">{t['settings_default_currency']}</label>
               <select className="field__select" id="defaultCurrency" {...register('defaultCurrency')}>
-                <option value="USD">USD ($)</option>
-                <option value="EUR">EUR (€)</option>
-                <option value="GBP">GBP (£)</option>
-                <option value="GEL">GEL (₾)</option>
+                {CURRENCIES.map((c) => (
+                  <option key={c.code} value={c.code}>{currencyLabel(c)}</option>
+                ))}
               </select>
             </div>
             <Input

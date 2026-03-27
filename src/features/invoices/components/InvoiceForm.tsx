@@ -6,6 +6,7 @@ import type { InvoiceFormData, InvoiceItem } from '@/entities/invoice/schemas';
 import { useInvoices } from '@/features/invoices/hooks/useInvoices';
 import { useClients } from '@/features/clients/hooks/useClients';
 import { useSettings } from '@/features/settings/hooks/useSettings';
+import { CURRENCIES, currencyLabel } from '@/shared/lib/currencies';
 import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
 import { useT } from '@/shared/i18n/useT';
@@ -252,10 +253,9 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
             <div className="field">
               <label className="field__label" htmlFor="inv-currency">{t['invoice_currency']}</label>
               <select className="field__select" id="inv-currency" {...register('currency')}>
-                <option value="USD">USD ($)</option>
-                <option value="EUR">EUR (€)</option>
-                <option value="GBP">GBP (£)</option>
-                <option value="GEL">GEL (₾)</option>
+                {CURRENCIES.map((c) => (
+                  <option key={c.code} value={c.code}>{currencyLabel(c)}</option>
+                ))}
               </select>
             </div>
           </div>
