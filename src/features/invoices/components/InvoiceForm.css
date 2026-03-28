@@ -545,10 +545,15 @@
     flex-shrink: 0;
   }
 
-  /* Price input */
+  /* Price input: ensure it looks like an editable field with explicit styling */
   .items-table__row > .field__input {
     flex: 0 0 88px;
     order: 4;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 0 var(--space-2);
+    height: 32px;
   }
 
   /* Line total: right-aligned, bold */
@@ -604,5 +609,31 @@
   }
   .invoice-form__total-row--grand strong {
     font-size: 15px;
+  }
+}
+
+/* ── Extra-narrow (≤360px, e.g. 287px responsive): simplify items row ── */
+@media (max-width: 360px) {
+  /* Hide QTY label — reduces clutter, saves vertical space */
+  .items-table__qty-label {
+    display: none;
+  }
+  /* Hide × separator — Price follows stepper without label */
+  .items-table__mul-label {
+    display: none;
+  }
+  /* Stepper: narrower */
+  .qty-stepper {
+    flex: 0 0 60px;
+  }
+  /* Price: grows to fill remaining space */
+  .items-table__row > .field__input {
+    flex: 1 1 60px;
+    min-width: 0;
+  }
+  /* Total: squeeze */
+  .items-table__total {
+    flex: 0 0 auto;
+    min-width: 0;
   }
 }
