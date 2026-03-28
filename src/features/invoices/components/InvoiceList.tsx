@@ -273,7 +273,7 @@ export function InvoiceList() {
         </div>
       </div>
 
-      {/* Status filter chips + mobile filter toggle */}
+      {/* Status chips + FAB in ONE sticky row */}
       <div className="invoice-list__filters">
         {filterKeys.map((s) => (
           <button
@@ -287,25 +287,62 @@ export function InvoiceList() {
             }
           </button>
         ))}
-        {/* Toggle on mobile — lives in sticky bar, always reachable */}
+        {/* FAB — pushed to far right via margin-left:auto, sticky with the row */}
         <button
-          className="mobile-filter-toggle"
+          className={`mobile-filter-toggle${showFiltersMobile ? ' mobile-filter-toggle--open' : ''}`}
           onClick={() => setShowFiltersMobile(!showFiltersMobile)}
           type="button"
           aria-expanded={showFiltersMobile}
         >
-          <Icon name="sliders" size={14} />
-          {activeExtraFilterCount > 0 && (
+          <Icon name={showFiltersMobile ? 'x' : 'sliders'} size={14} />
+          {!showFiltersMobile && activeExtraFilterCount > 0 && (
             <span className="mobile-filter-toggle__badge">{activeExtraFilterCount}</span>
           )}
         </button>
       </div>
 
-      {/* Extra filters + sort */}
-      <div className={`invoice-list__extra-filters${showFiltersMobile ? ' is-open' : ''}${hasActiveFilters ? ' has-active-filters' : ''}`}>
-        {/* Date range */}
-        <div className="inv-filter-group">
-          <label className="inv-filter-label">{t['filter_from']}</label>
+      {/* Extra filters panel — sticky below chips row */}
+      <div className={`invoice-list__extra-filters${showFiltersMobile ? ' is-open' : ''}${activeExtraFilterCount > 0 ? ' has-active-filters' : ''}`}>
+        {/* Active filter summary pills — visible when collapsed + has active filters */}
+        <div className="inv-filters__active-summary">
+          {dateFrom && (
+            <span className="active-filter-pill" onClick={() => { setDateFrom(''); }}>
+              ≥ {dateFrom} <Icon name="x" size={10} />
+            </span>
+          )}
+          {dateTo && (
+            <span className="active-filter-pill" onClick={() => { setDateTo(''); }}>
+              ≤ {dateTo} <Icon name="x" size={10} />
+            </span>
+          )}
+          {clientFilter && (
+            <span className="active-filter-pill" onClick={() => { setClientFilter(''); }}>
+              {clientFilter} <Icon name="x" size={10} />
+            </span>
+          )}
+          {amountMin && (
+            <span className="active-filter-pill" onClick={() => { setAmountMin(''); }}>
+              ≥ {amountMin} <Icon name="x" size={10} />
+            </span>
+          )}
+          {amountMax && (
+            <span className="active-filter-pill" onClick={() => { setAmountMax(''); }}>
+              ≤ {amountMax} <Icon name="x" size={10} />
+            </span>
+          )}
+          {sortBy !== 'date_desc' && (
+            <span className="active-filter-pill" onClick={() => { setSortBy('date_desc'); }}>
+              {sortOptions.find((o) => o.value === sortBy)?.label} <Icon name="x" size={10} />
+            </span>
+          )}
+          <button className="inv-filter-reset inv-filter-reset--pill" onClick={resetFilters} title={t['filter_reset']}>
+            <Icon name="x" size={11} />
+          </button>
+        </div>
+
+        {/* Full filter controls — on desktop always visible; on mobile shown when expanded */}
+        <div className="inv-filters__controls">
+          {/* Date range */}
           <DatePicker
             compact
             value={dateFrom}
@@ -313,9 +350,6 @@ export function InvoiceList() {
             placeholder={t['filter_from']}
             locale={lang === 'ru' ? 'ru' : 'en'}
           />
-        </div>
-        <div className="inv-filter-group">
-          <label className="inv-filter-label">{t['filter_to']}</label>
           <DatePicker
             compact
             value={dateTo}
@@ -323,62 +357,50 @@ export function InvoiceList() {
             placeholder={t['filter_to']}
             locale={lang === 'ru' ? 'ru' : 'en'}
           />
-        </div>
 
-        <div className="inv-filter-sep" />
+          <div className="inv-filter-sep" />
 
-        {/* Client */}
-        <div className="inv-filter-group">
-          <label className="inv-filter-label">{t['invoice_client']}</label>
+          {/* Client */}
           <ClientCombobox
             clients={clientOptions}
             value={clientFilter || 'all'}
             onChange={(v) => setClientFilter(v === 'all' ? '' : v)}
             placeholder={t['filter_all_clients']}
           />
-        </div>
 
-        <div className="inv-filter-sep" />
+          <div className="inv-filter-sep" />
 
-        {/* Amount range */}
-        <div className="inv-filter-group">
-          <label className="inv-filter-label">{t['filter_min']}</label>
+          {/* Amount range */}
           <FilterStepper
             value={amountMin}
             onChange={(e) => setAmountMin(e.target.value)}
-            placeholder="0"
+            placeholder={t['filter_min']}
             min={0}
           />
-        </div>
-        <div className="inv-filter-group">
-          <label className="inv-filter-label">{t['filter_max']}</label>
           <FilterStepper
             value={amountMax}
             onChange={(e) => setAmountMax(e.target.value)}
-            placeholder="∞"
+            placeholder={t['filter_max']}
             min={0}
           />
-        </div>
 
-        <div className="inv-filter-sep" />
+          <div className="inv-filter-sep" />
 
-        {/* Sort */}
-        <div className="inv-filter-group">
-          <label className="inv-filter-label">{t['filter_sort']}</label>
+          {/* Sort */}
           <FilterDropdown
             options={sortOptions}
             value={sortBy}
             onChange={setSortBy}
           />
-        </div>
 
-        {/* Reset */}
-        {hasActiveFilters && (
-          <button className="inv-filter-reset" onClick={resetFilters} title={t['filter_reset']}>
-            <Icon name="x" size={13} />
-            {t['filter_reset']}
-          </button>
-        )}
+          {/* Reset */}
+          {hasActiveFilters && (
+            <button className="inv-filter-reset" onClick={resetFilters} title={t['filter_reset']}>
+              <Icon name="x" size={13} />
+              {t['filter_reset']}
+            </button>
+          )}
+        </div>
       </div>
 
       {filtered.length === 0 ? (

@@ -122,14 +122,14 @@
   align-items: stretch;
 }
 
-@media (max-width: 899px) {
+@media (max-width: 767px) {
   .dashboard__grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-/* At 599px, stack ALL widgets — col-span-2 becomes full-width */
-@media (max-width: 599px) {
+/* At xs/sm, stack ALL widgets — col-span-2 becomes full-width */
+@media (max-width: 639px) {
   .dashboard__grid {
     grid-template-columns: 1fr;
   }

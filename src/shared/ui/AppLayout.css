@@ -104,8 +104,9 @@
 .app-main {
   flex: 1;
   padding: 16px;
-  /* overflow-x was here but it broke position:sticky in Chrome.
-     Now handled at .app-layout level. */
+  /* Bottom padding compensates for fixed bottom nav height
+     (6px + ~40px icons + 6px + safe-area ≈ 58px, round to 60px) */
+  padding-bottom: calc(60px + env(safe-area-inset-bottom));
 }
 
 /* ── BOTTOM NAV (mobile) ── */
@@ -116,10 +117,11 @@
   background: var(--color-surface);
   border-top: 1px solid var(--color-border);
   padding: 6px 0 calc(6px + env(safe-area-inset-bottom));
-  position: sticky;
+  position: fixed;
   bottom: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
-  order: 99; /* push below main on mobile */
 }
 
 /* hide desktop-only elements on mobile */
@@ -166,6 +168,9 @@
     align-items: stretch;
     position: sticky;
     top: 0;
+    bottom: auto;  /* reset mobile fixed */
+    left: auto;    /* reset mobile fixed */
+    right: auto;   /* reset mobile fixed */
     /* KEY: full viewport height so controls are always visible */
     height: 100dvh;
     overflow: hidden;

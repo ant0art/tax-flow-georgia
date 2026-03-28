@@ -55,9 +55,9 @@
   gap: var(--space-3);
 }
 
-/* 640–749px: 3-column meta — [Date | Due Date | Currency], Number hidden
+/* 640–767px (md tier): 3-column meta — [Date | Due Date | Currency], Number hidden
    At 640px: (640-40-24)/3 ≈ 192px per col → dates are fully readable */
-@media (min-width: 640px) and (max-width: 749px) {
+@media (min-width: 640px) and (max-width: 767px) {
   .invoice-form__meta {
     grid-template-columns: 1fr 1fr 1fr;
     gap: var(--space-2);
@@ -75,9 +75,9 @@
   }
 }
 
-/* ≥750px: full 4-column meta — [Number | Date | Due Date | Currency]
-   At 750px: (750-40-36)/4.3 ≈ 156px per 1fr → dates are readable */
-@media (min-width: 750px) {
+/* ≥768px (lg+): full 4-column meta — [Number | Date | Due Date | Currency]
+   At 768px: (768-40-36)/4.3 ≈ 161px per 1fr → dates are readable */
+@media (min-width: 768px) {
   .invoice-form__meta {
     grid-template-columns: 1.3fr 1fr 1fr 1fr;
   }
@@ -612,8 +612,8 @@
   }
 }
 
-/* ── Extra-narrow (≤360px, e.g. 287px responsive): simplify items row ── */
-@media (max-width: 360px) {
+/* ── Extra-narrow (xs tier, ≤479px): simplify items row ── */
+@media (max-width: 479px) {
   /* Hide QTY label — reduces clutter, saves vertical space */
   .items-table__qty-label {
     display: none;

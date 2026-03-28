@@ -13,17 +13,17 @@
 
 .invoice-list__header h1 { font: var(--text-h1); }
 
-/* Status filter chips */
+/* Status filter chips + FAB in one sticky row */
 .invoice-list__filters {
   display: flex;
-  gap: var(--space-2);
+  align-items: center;
+  row-gap: 12px;
+  column-gap: var(--space-2);
   flex-wrap: wrap;
   max-width: 960px;
-  /* Sticky so users can access filters while scrolling */
   position: sticky;
   top: 0;
   z-index: 20;
-  background: var(--color-bg);
   padding-block: 6px;
 }
 
@@ -44,10 +44,64 @@
   z-index: 19;
 }
 
-.list-header-actions {
+/* Desktop: toggle hidden, summary hidden, controls always shown */
+.inv-filters__active-summary {
+  display: none; /* on desktop always hidden */
+}
+
+/* Pill-style reset (smaller, for summary row) */
+.inv-filter-reset--pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.inv-filter-reset--pill:hover {
+  border-color: var(--color-danger, #e74c3c);
+  color: var(--color-danger, #e74c3c);
+}
+
+.inv-filters__controls {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
+  flex: 1;
+}
+
+/* ── Active filter summary pills (mobile only) ── */
+.active-filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: var(--control-height-filter-sm);
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--pill-active-text);
+  background: var(--pill-active-bg);
+  border: 1px solid var(--pill-active-border);
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--duration-fast), border-color var(--duration-fast);
+}
+
+.active-filter-pill:hover {
+  filter: brightness(1.15);
+}
+
+.active-filter-pill svg {
+  opacity: 0.6;
+  flex-shrink: 0;
 }
 
 .mobile-filter-toggle {
@@ -86,23 +140,8 @@
   display: none; /* shown only when count > 0 */
 }
 
-
-.inv-filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.inv-filter-label {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--color-text-tertiary);
-}
-
 .inv-filter-input {
-  height: 30px;
+  height: var(--control-height-filter);
   padding: 0 var(--space-2);
   font: var(--text-small);
   color: var(--color-text);
@@ -147,7 +186,7 @@
 
 .inv-filter-sep {
   width: 1px;
-  height: 30px;
+  height: var(--control-height-filter);
   background: var(--color-border);
   margin: 0 var(--space-1);
   align-self: flex-end;
@@ -157,7 +196,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  height: 30px;
+  height: var(--control-height-filter);
   padding: 0 var(--space-3);
   border-radius: var(--radius-md);
   font: var(--text-small);
@@ -471,33 +510,85 @@
   }
 
   /* Compact extra-filters — collapsed by default on mobile */
-  /* invoice-list__filters chips bar: flex with toggle at far right */
   .invoice-list__filters {
-    gap: 6px;
+    row-gap: 8px;
+    column-gap: 6px;
     justify-content: flex-start;
   }
 
-  /* Show toggle button on mobile */
+  /* Show toggle chip INSIDE the chips row */
   .mobile-filter-toggle {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    margin-left: auto; /* Push toggle to the right within sticky chips bar */
+    margin-left: auto; /* push to far right edge */
+  }
+  .mobile-filter-toggle--open {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
   }
   .mobile-filter-toggle__badge {
     display: inline-block;
   }
 
-  /* Extra-filters: bar itself stays sticky; controls hidden unless toggled */
+  /* ── Panel: STATE 2.1 — collapsed, no active filters → HIDDEN ── */
   .invoice-list__extra-filters {
     display: none;
-    top: calc(56px + 46px); /* 56px header + ~46px chips row */
+    flex-direction: column;
+    padding: 0;
+    gap: 0;
+    border: none;
+    background: none;
+    position: relative; /* not sticky in default/summary state */
+    top: auto; /* reset tablet-level top: 102px which caused overlap with position:relative */
+    z-index: 19;
   }
-  .invoice-list__extra-filters.is-open {
+
+  /* ── STATE 2.3 — collapsed, has active filters → show sticky SUMMARY pills ── */
+  .invoice-list__extra-filters.has-active-filters {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 0;
+    background: none;
+    border: none;
+    /* sticky so pills stay visible during scroll (FAB is already sticky above) */
+    position: sticky;
+    top: 102px; /* 56px header + ~46px chips row */
+  }
+  .invoice-list__extra-filters.has-active-filters .inv-filters__active-summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* ── STATE 2.2 / 2.4 — expanded → show FULL controls panel (sticky) ── */
+  .invoice-list__extra-filters.is-open {
+    display: flex;
+    position: sticky;
+    top: 102px; /* 56px header + ~46px chips row */
+    padding: var(--space-2) var(--space-3);
+    background: var(--color-surface-inset);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+
+  /* When expanded, hide summary (full controls are shown instead) */
+  .invoice-list__extra-filters.is-open .inv-filters__active-summary {
+    display: none;
+  }
+
+  /* Controls: hidden by default, shown when is-open */
+  .inv-filters__controls {
+    display: none;
+    flex-wrap: wrap;
     gap: 4px;
-    padding: 4px 6px;
+    width: 100%;
+  }
+  .invoice-list__extra-filters.is-open .inv-filters__controls {
+    display: flex;
   }
 }

@@ -8,7 +8,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 30px;
+  height: var(--control-height-filter);
   padding: 0 8px 0 var(--space-3);
   font: var(--text-small);
   color: var(--color-text);

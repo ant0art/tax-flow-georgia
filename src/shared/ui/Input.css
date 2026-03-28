@@ -17,7 +17,7 @@
 }
 
 .field__input {
-  height: 32px;                          /* canonical form input height — matches FieldStepper/FieldSelect */
+  height: var(--control-height-form);   /* canonical form input height — matches FieldStepper/FieldSelect */
   padding: 0 var(--space-3);             /* vertical centering via fixed height, not padding */
   box-sizing: border-box;
   background: var(--color-surface-inset);

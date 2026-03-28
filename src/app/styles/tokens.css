@@ -77,7 +77,43 @@
   --easing-default: cubic-bezier(0.4, 0, 0.2, 1);
   --easing-decelerate: cubic-bezier(0, 0, 0.2, 1);
   --easing-accelerate: cubic-bezier(0.4, 0, 1, 1);
+
+  /* === Control Heights ===
+     Form fields (data-entry):  32px
+     Filter controls (bars):    30px → 26px on mobile (≤639px)
+     ──────────────────────────────────────────────── */
+  --control-height-form: 32px;
+  --control-height-filter: 30px;
+  --control-height-filter-sm: 26px;
+
+  /* === Active filter pills === */
+  --pill-active-bg: #C4856C;
+  --pill-active-text: #FFFFFF;
+  --pill-active-border: #B0745C;
 }
+
+/* ═══════════════════════════════════════════════════
+   Breakpoint Reference — Standard 6-tier system
+   ═══════════════════════════════════════════════════
+   CSS custom properties can't be used in @media
+   queries, so these are documented constants only.
+
+   Tier   min-width   max-width   Target devices
+   ─────  ─────────   ─────────   ──────────────────
+   xs     0           479px       Small phones (iPhone SE 375px)
+   sm     480px       639px       Medium phones
+   md     640px       767px       Phablets, large phones
+   lg     768px       1023px      Tablets
+   xl     1024px      1279px      Desktop + sidebar
+   2xl    1280px      ∞           Wide desktop
+
+   Usage patterns:
+     Mobile-first:  @media (min-width: 640px) { ... }
+     Desktop-down:  @media (max-width: 1023px) { ... }
+     Range:         @media (min-width: 480px) and (max-width: 639px) { ... }
+
+   ⚠ Do NOT introduce breakpoint values outside these tiers.
+   ═══════════════════════════════════════════════════ */
 
 /* === Dark Theme === */
 [data-theme="dark"] {
@@ -111,4 +147,9 @@
   --shadow-3: 0 8px 16px rgba(0, 0, 0, 0.5);
   --shadow-4: 0 16px 32px rgba(0, 0, 0, 0.6);
   --shadow-inset: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+
+  /* === Active filter pills === */
+  --pill-active-bg: #6B2E28;
+  --pill-active-text: #F0DAD0;
+  --pill-active-border: #8B3E36;
 }

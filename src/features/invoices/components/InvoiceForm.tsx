@@ -547,7 +547,7 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
               <input
                 className="field__input amount"
                 inputMode="decimal"
-                placeholder={t['invoice_price'] ?? 'Price'}
+                placeholder="0.00"
                 title={t['invoice_price']}
                 value={itemDisplayValues[`price-${idx}`] ?? (item.unitPrice === 0 ? '' : String(item.unitPrice))}
                 onChange={(e) => handleAmountChange(idx, 'unitPrice', e.target.value)}

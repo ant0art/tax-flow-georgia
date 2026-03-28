@@ -52,9 +52,8 @@ export function TransactionList() {
     amountMin !== '' || amountMax !== '' ||
     sort !== 'date-desc';
 
-  const activeFilterCount = [clientFilter !== 'all', currencyFilter !== 'all',
-    dateFrom !== '', dateTo !== '', amountMin !== '', amountMax !== '',
-    sort !== 'date-desc'].filter(Boolean).length;
+  const activeFilterCount = [currencyFilter !== 'all',
+    dateFrom !== '', dateTo !== '', amountMin !== '', amountMax !== ''].filter(Boolean).length;
 
   const resetFilters = () => {
     setClientFilter('all');
@@ -173,26 +172,34 @@ export function TransactionList() {
         </div>
       )}
 
-      {/* Filter bar — always sticky, toggle always reachable */}
-      {transactions.length > 0 && (
-        <div className={`tx-filters${showFilters ? ' is-open' : ''}`}>
-          {/* Toggle row — always visible on mobile, anchored to right edge */}
-          <div className="tx-filters__toggle-row">
-            <button
-              className="mobile-filter-toggle"
-              type="button"
-              onClick={() => setShowFilters(f => !f)}
-              aria-expanded={showFilters}
-            >
-              <Icon name="sliders" size={14} />
-              {activeFilterCount > 0 && (
-                <span className="mobile-filter-toggle__badge">{activeFilterCount}</span>
-              )}
-            </button>
+      {/* Stats row */}
+      {stats.count > 0 && (
+        <div className="transaction-stats">
+          <div className="stat-card">
+            <span className="stat-card__label">{t['transaction_total_received']}</span>
+            <span className="stat-card__value amount">{stats.totalGEL.toFixed(2)} ₾</span>
           </div>
+          <div className="stat-card stat-card--tax">
+            <span className="stat-card__label">{t['transaction_tax_due']}</span>
+            <span className="stat-card__value amount">{stats.totalTax.toFixed(2)} ₾</span>
+          </div>
+          <div className="stat-card stat-card--net">
+            <span className="stat-card__label">Net income</span>
+            <span className="stat-card__value amount">{(stats.totalGEL - stats.totalTax).toFixed(2)} ₾</span>
+          </div>
+        </div>
+      )}
 
-          {/* Filter controls — on desktop always visible; on mobile toggled */}
-          <div className="tx-filters__controls">
+      {/* Filter bar: FAB + pills + controls — below stats, above cards */}
+      {transactions.length > 0 && (
+        <div className={`tx-filters${showFilters ? ' is-open' : ''}${activeFilterCount > 0 ? ' has-active-filters' : ''}`}>
+          {/* Quick filters — visible on mobile in collapsed state, fill the row */}
+          <div className="tx-filters__quick">
+            <FilterDropdown
+              options={sortOptions}
+              value={sort}
+              onChange={(v) => setSort(v as SortKey)}
+            />
             {uniqueClients.length > 1 && (
               <ClientCombobox
                 clients={uniqueClients}
@@ -201,20 +208,56 @@ export function TransactionList() {
                 placeholder={t['filter_all_clients']}
               />
             )}
+          </div>
 
-            {uniqueCurrencies.length > 1 && (
-              <FilterDropdown
-                options={[
-                  { value: 'all', label: t['filter_all_currencies'] },
-                  ...uniqueCurrencies.map((c) => ({ value: c, label: c }))
-                ]}
-                value={currencyFilter}
-                onChange={setCurrencyFilter}
-              />
+          {/* FAB toggle — pushed right with margin-left:auto */}
+          <button
+            className={`mobile-filter-toggle${showFilters ? ' mobile-filter-toggle--open' : ''}`}
+            type="button"
+            onClick={() => setShowFilters(f => !f)}
+            aria-expanded={showFilters}
+          >
+            <Icon name={showFilters ? 'x' : 'sliders'} size={14} />
+            {!showFilters && activeFilterCount > 0 && (
+              <span className="mobile-filter-toggle__badge">{activeFilterCount}</span>
             )}
+          </button>
 
-            <div className="tx-filter-sep" />
+          {/* Active filter summary pills — row below quick filters */}
+          <div className="tx-filters__active-summary">
+            {dateFrom && (
+              <span className="active-filter-pill" onClick={() => { setDateFrom(''); }}>
+                ≥ {dateFrom} <Icon name="x" size={10} />
+              </span>
+            )}
+            {dateTo && (
+              <span className="active-filter-pill" onClick={() => { setDateTo(''); }}>
+                ≤ {dateTo} <Icon name="x" size={10} />
+              </span>
+            )}
+            {currencyFilter !== 'all' && (
+              <span className="active-filter-pill" onClick={() => { setCurrencyFilter('all'); }}>
+                {currencyFilter} <Icon name="x" size={10} />
+              </span>
+            )}
+            {amountMin && (
+              <span className="active-filter-pill" onClick={() => { setAmountMin(''); }}>
+                ≥ {amountMin} ₾ <Icon name="x" size={10} />
+              </span>
+            )}
+            {amountMax && (
+              <span className="active-filter-pill" onClick={() => { setAmountMax(''); }}>
+                ≤ {amountMax} ₾ <Icon name="x" size={10} />
+              </span>
+            )}
+            <button className="inv-filter-reset inv-filter-reset--pill" onClick={resetFilters} title={t['filter_reset']}>
+              <Icon name="x" size={11} />
+            </button>
+          </div>
 
+          {/* Full filter controls — on desktop always visible; on mobile shows extra filters only */}
+          <div className="tx-filters__controls">
+            {/* Date range */}
             <DatePicker
               compact
               value={dateFrom}
@@ -232,27 +275,34 @@ export function TransactionList() {
 
             <div className="tx-filter-sep" />
 
+            {/* Currency */}
+            {uniqueCurrencies.length > 1 && (
+              <FilterDropdown
+                options={[
+                  { value: 'all', label: t['filter_all_currencies'] },
+                  ...uniqueCurrencies.map((c) => ({ value: c, label: c }))
+                ]}
+                value={currencyFilter}
+                onChange={setCurrencyFilter}
+              />
+            )}
+
+            <div className="tx-filter-sep" />
+
+            {/* Amount range — filtered by amountGEL */}
             <FilterStepper
               value={amountMin}
               onChange={(e) => setAmountMin(e.target.value)}
-              placeholder={t['filter_min']}
+              placeholder={`${t['filter_min']} ₾`}
               min={0}
-              title={t['filter_min']}
+              title={`${t['filter_min']} ₾`}
             />
             <FilterStepper
               value={amountMax}
               onChange={(e) => setAmountMax(e.target.value)}
-              placeholder={t['filter_max']}
+              placeholder={`${t['filter_max']} ₾`}
               min={0}
-              title={t['filter_max']}
-            />
-
-            <div className="tx-filter-sep" />
-
-            <FilterDropdown
-              options={sortOptions}
-              value={sort}
-              onChange={(v) => setSort(v as SortKey)}
+              title={`${t['filter_max']} ₾`}
             />
 
             {hasActiveFilters && (
@@ -261,24 +311,6 @@ export function TransactionList() {
                 {t['filter_reset']}
               </button>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* Stats row */}
-      {stats.count > 0 && (
-        <div className="transaction-stats">
-          <div className="stat-card">
-            <span className="stat-card__label">{t['transaction_total_received']}</span>
-            <span className="stat-card__value amount">{stats.totalGEL.toFixed(2)} ₾</span>
-          </div>
-          <div className="stat-card stat-card--tax">
-            <span className="stat-card__label">{t['transaction_tax_due']}</span>
-            <span className="stat-card__value amount">{stats.totalTax.toFixed(2)} ₾</span>
-          </div>
-          <div className="stat-card stat-card--net">
-            <span className="stat-card__label">Net income</span>
-            <span className="stat-card__value amount">{(stats.totalGEL - stats.totalTax).toFixed(2)} ₾</span>
           </div>
         </div>
       )}

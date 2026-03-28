@@ -4,7 +4,7 @@
 .filter-stepper {
   display: inline-flex;
   align-items: stretch;
-  height: 30px;
+  height: var(--control-height-filter);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -18,7 +18,7 @@
 }
 
 .filter-stepper__input {
-  width: 56px;
+  width: 72px;
   padding: 0 6px;
   background: var(--color-surface);
   border: none;
@@ -83,10 +83,10 @@
 /* ── Mobile compact ── */
 @media (max-width: 639px) {
   .filter-stepper {
-    height: 26px;
+    height: var(--control-height-filter-sm);
   }
   .filter-stepper__input {
-    width: 44px;
+    width: 56px;
     font-size: 12px;
     padding: 0 4px;
   }

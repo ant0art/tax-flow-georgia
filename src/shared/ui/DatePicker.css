@@ -236,11 +236,11 @@
 }
 
 .datepicker--compact .datepicker__input-wrap {
-  height: 30px;
+  height: var(--control-height-filter);
 }
 
 .datepicker--compact .field__input {
-  height: 30px;
+  height: var(--control-height-filter);
   padding: 0 6px;
   font: var(--text-small);
 }
@@ -272,10 +272,10 @@
 
 @media (max-width: 639px) {
   .datepicker--compact .datepicker__input-wrap {
-    height: 26px;
+    height: var(--control-height-filter-sm);
   }
   .datepicker--compact .field__input {
-    height: 26px;
+    height: var(--control-height-filter-sm);
     font-size: 12px;
   }
   .datepicker--compact .datepicker__toggle {
