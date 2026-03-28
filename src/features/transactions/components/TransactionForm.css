@@ -8,7 +8,9 @@
   padding: var(--space-4) var(--space-5);
   box-shadow: var(--shadow-1);
   max-width: 960px;
-  /* Above sticky tx-filters (z-index:20) so DatePicker popup isn't clipped */
+  /* Contain layout — prevent children from overflowing card bounds */
+  overflow: hidden;
+  /* z-index for DatePicker popover (uses position:fixed so overflow:hidden is fine) */
   position: relative;
   z-index: 21;
 }
@@ -24,46 +26,27 @@
   gap: 6px;
 }
 
-/* Row 1: Date + Client + Description + Project */
+/* ── Desktop: flexible grid layouts ── */
 .transaction-form__grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-3);
 }
 
-/* Description row: description gets 2x space, project stays compact */
 .transaction-form__grid--desc {
   grid-template-columns: 2fr 1fr;
 }
 
-@media (max-width: 639px) {
-  .transaction-form {
-    padding: var(--space-3);
-  }
-  /* 2-col grid on mobile: fields pair up instead of 1fr stack */
-  .transaction-form__grid { grid-template-columns: 1fr 1fr; }
-  /* Description gets full width, project compact below */
-  .transaction-form__grid--desc { grid-template-columns: 1fr; }
-}
-
-/* Inner row: Amount + Currency + NBG Rate (inside the 2fr left column) */
+/* Inner row: Amount + Currency + NBG Rate */
 .transaction-form__amounts-inner {
   display: grid;
   grid-template-columns: 1fr 1fr 0.7fr;
   gap: var(--space-3);
 }
 
-@media (max-width: 639px) {
-  /* Amount + Currency side-by-side; NBG rate below them */
-  .transaction-form__amounts-inner { grid-template-columns: 1fr 1fr; }
-}
-
-@media (max-width: 960px) {
-  .transaction-form__amounts { grid-template-columns: 1fr 1fr; }
-}
-
-@media (max-width: 639px) {
-  .transaction-form__amounts { grid-template-columns: 1fr; }
+/* All fields in amounts-inner must respect their column — no browser min-width escape */
+.transaction-form__amounts-inner > * {
+  min-width: 0;
 }
 
 /* The computed panel (Amount in GEL + Tax) */
@@ -93,6 +76,110 @@
 .transaction-form__tax .amount {
   font: var(--text-body);
   color: var(--color-warning);
+}
+
+/* ── Mobile: compact single-screen layout (≤639px) ── */
+@media (max-width: 639px) {
+  .transaction-form {
+    padding: var(--space-3) var(--space-3);
+    gap: var(--space-2);
+  }
+
+  /* Row 1: [Date 148px] [Client fills rest]
+     148px = YYYY-MM-DD (10ch × ~9px) + calendar icon 28px + 2×8px padding + 2px border = ~118px
+     Add 30px margin for safety → 148px */
+  .transaction-form__grid {
+    grid-template-columns: 148px 1fr;
+    gap: var(--space-2);
+  }
+
+  /* Description + Project: each full width */
+  .transaction-form__grid--desc {
+    grid-template-columns: 1fr;
+  }
+
+  /* Amounts row outer wrapper: override grid, use flex-column
+     so computed card doesn't stretch to grid column width */
+  .transaction-form__grid.transaction-form__grid--desc {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  /* Amount row: flex instead of grid so buttons stay fully accessible
+     Amount gets ~half, Currency fixed, NBG fixed — no button clipping */
+  .transaction-form__amounts-inner {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  /* Amount gets all remaining space — stepper buttons always reachable */
+  .transaction-form__amounts-inner > .field:first-child {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  /* Currency: enough for "USD ($)" without truncation */
+  .transaction-form__amounts-inner > .field:nth-child(2) {
+    flex: 0 0 100px;
+    min-width: 0;
+  }
+
+  /* NBG Rate: compact, auto-filled */
+  .transaction-form__amounts-inner > .field-with-indicator {
+    flex: 0 0 88px;
+    min-width: 0;
+  }
+
+  /* GEL/Tax result card: compact, not full-width
+     Sits as two badges side by side */
+  .transaction-form__grid.transaction-form__grid--desc:last-of-type {
+    display: block; /* collapse the outer 2fr|1fr wrapper */
+  }
+
+  .transaction-form__computed {
+    /* Compact horizontal pill: [AMOUNT IN GEL: 0.00₾] [TAX: 0.00₾] */
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: var(--space-4);
+    padding: var(--space-2) var(--space-3);
+    width: auto;
+    /* Right-aligned — since parent is flex-column, align-self pushes to flex-end */
+    align-self: flex-end;
+  }
+
+  .transaction-form__gel,
+  .transaction-form__tax {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+  }
+
+  .transaction-form__gel .field__label,
+  .transaction-form__tax .field__label {
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.5;
+    white-space: nowrap;
+  }
+
+  .transaction-form__gel .amount {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .transaction-form__tax .amount {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  /* Actions: compact */
+  .transaction-form__actions {
+    gap: var(--space-2);
+  }
 }
 
 /* ── Create linked record shortcut ── */
@@ -153,4 +240,3 @@
   right: 10px;
   color: var(--color-text-tertiary);
 }
-

@@ -484,7 +484,7 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
             <div key={item.id} className="items-table__row">
               <textarea
                 className="items-table__desc"
-                placeholder={t['invoice_desc']}
+                placeholder={t['invoice_desc'] ?? 'Service description…'}
                 autoComplete="off"
                 rows={1}
                 value={item.description}
@@ -494,11 +494,14 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
                   if (e.key === 'Enter' && !e.shiftKey) e.preventDefault();
                 }}
               />
-              <div className="qty-stepper">
+              {/* qty label: visible on mobile only (CSS shows it on ≤639px) */}
+              <span className="items-table__qty-label" aria-hidden="true">qty</span>
+              <div className="qty-stepper" aria-label={t['invoice_qty']}>
                 <input
                   className="qty-stepper__input"
                   inputMode="decimal"
-                  placeholder="1"
+                  placeholder="Qty"
+                  title={t['invoice_qty']}
                   value={itemDisplayValues[`qty-${idx}`] ?? String(item.quantity)}
                   onChange={(e) => handleAmountChange(idx, 'quantity', e.target.value)}
                   onBlur={() => handleAmountBlur(idx, 'quantity')}
@@ -539,10 +542,13 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
                   </button>
                 </div>
               </div>
+              {/* × separator visible on mobile between qty and price */}
+              <span className="items-table__mul-label" aria-hidden="true">×</span>
               <input
                 className="field__input amount"
                 inputMode="decimal"
-                placeholder="0.00"
+                placeholder={t['invoice_price'] ?? 'Price'}
+                title={t['invoice_price']}
                 value={itemDisplayValues[`price-${idx}`] ?? (item.unitPrice === 0 ? '' : String(item.unitPrice))}
                 onChange={(e) => handleAmountChange(idx, 'unitPrice', e.target.value)}
                 onBlur={() => handleAmountBlur(idx, 'unitPrice')}

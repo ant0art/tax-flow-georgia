@@ -429,7 +429,8 @@ export function TransactionForm({ onDone, initial, rowIndex }: Props) {
             step={0.01}
             mono
             error={errors.amountOriginal?.message}
-            {...register('amountOriginal', { valueAsNumber: true })}
+            value={amountOriginal}
+            onChange={(e) => setValue('amountOriginal', parseFloat(e.target.value) || 0, { shouldValidate: true })}
           />
           <FieldSelect
             label={t['transaction_currency']}
@@ -445,7 +446,8 @@ export function TransactionForm({ onDone, initial, rowIndex }: Props) {
               mono
               hint={fetchingRate ? undefined : t['transaction_nbg_auto']}
               error={errors.nbgRate?.message}
-              {...register('nbgRate', { valueAsNumber: true })}
+              value={nbgRate}
+              onChange={(e) => setValue('nbgRate', parseFloat(e.target.value) || 0, { shouldValidate: true })}
             />
             {fetchingRate && (
               <span className="field-loading-indicator">
