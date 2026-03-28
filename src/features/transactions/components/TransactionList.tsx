@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useCallback } from 'react';
+import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { useTransactions } from '@/features/transactions/hooks/useTransactions';
 import { TransactionForm } from './TransactionForm';
 import { Button } from '@/shared/ui/Button';
@@ -22,9 +22,19 @@ export function TransactionList() {
   const [editItem, setEditItem] = useState<{ tx: TransactionFormData; rowIndex: number } | null>(null);
   const t = useT();
   const lang = useUIStore((s) => s.lang);
+  const formRef = useRef<HTMLDivElement>(null);
 
-  // Mobile filters collapsed by default
-  const [filtersCollapsed, setFiltersCollapsed] = useState(true);
+  // Scroll to form when it opens
+  useEffect(() => {
+    if (showForm && formRef.current) {
+      setTimeout(() => {
+        formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50); // Small delay to let React finish rendering
+    }
+  }, [showForm]);
+
+  // Mobile: show filters panel when toggled (hidden by CSS on mobile by default)
+  const [showFilters, setShowFilters] = useState(false);
 
 
   // ── Filter state ──
@@ -156,91 +166,102 @@ export function TransactionList() {
         </div>
       </div>
 
-      {/* New transaction form (inline) */}
-      {showForm && <TransactionForm onDone={() => setShowForm(false)} />}
+      {/* New transaction form (inline) — wrapped in ref div for scroll-to */}
+      {showForm && (
+        <div ref={formRef}>
+          <TransactionForm onDone={() => setShowForm(false)} />
+        </div>
+      )}
 
-      {/* Filter bar — always visible */}
+      {/* Filter bar — always sticky, toggle always reachable */}
       {transactions.length > 0 && (
-        <div className={`tx-filters${filtersCollapsed ? ' is-collapsed' : ''}`}>
-          <button
-            className="mobile-filter-toggle"
-            type="button"
-            onClick={() => setFiltersCollapsed(c => !c)}
-            title="Toggle filters"
-          >
-            <Icon name="sliders" size={16} />
-            {activeFilterCount > 0 && (
-              <span className="mobile-filter-toggle__badge">{activeFilterCount}</span>
-            )}
-          </button>
-          {uniqueClients.length > 1 && (
-            <ClientCombobox
-              clients={uniqueClients}
-              value={clientFilter}
-              onChange={setClientFilter}
-              placeholder={t['filter_all_clients']}
-            />
-          )}
-
-          {uniqueCurrencies.length > 1 && (
-            <FilterDropdown
-              options={[
-                { value: 'all', label: t['filter_all_currencies'] },
-                ...uniqueCurrencies.map((c) => ({ value: c, label: c }))
-              ]}
-              value={currencyFilter}
-              onChange={setCurrencyFilter}
-            />
-          )}
-
-          <div className="tx-filter-sep" />
-
-          <DatePicker
-            compact
-            value={dateFrom}
-            onChange={setDateFrom}
-            placeholder={t['filter_from']}
-            locale={lang === 'ru' ? 'ru' : 'en'}
-          />
-          <DatePicker
-            compact
-            value={dateTo}
-            onChange={setDateTo}
-            placeholder={t['filter_to']}
-            locale={lang === 'ru' ? 'ru' : 'en'}
-          />
-
-          <div className="tx-filter-sep" />
-
-          <FilterStepper
-            value={amountMin}
-            onChange={(e) => setAmountMin(e.target.value)}
-            placeholder={t['filter_min']}
-            min={0}
-            title={t['filter_min']}
-          />
-          <FilterStepper
-            value={amountMax}
-            onChange={(e) => setAmountMax(e.target.value)}
-            placeholder={t['filter_max']}
-            min={0}
-            title={t['filter_max']}
-          />
-
-          <div className="tx-filter-sep" />
-
-          <FilterDropdown
-            options={sortOptions}
-            value={sort}
-            onChange={(v) => setSort(v as SortKey)}
-          />
-
-          {hasActiveFilters && (
-            <button className="tx-filter-reset" onClick={resetFilters} title={t['filter_reset']}>
-              <Icon name="x" size={13} />
-              {t['filter_reset']}
+        <div className={`tx-filters${showFilters ? ' is-open' : ''}`}>
+          {/* Toggle row — always visible on mobile, anchored to right edge */}
+          <div className="tx-filters__toggle-row">
+            <button
+              className="mobile-filter-toggle"
+              type="button"
+              onClick={() => setShowFilters(f => !f)}
+              aria-expanded={showFilters}
+            >
+              <Icon name="sliders" size={14} />
+              {activeFilterCount > 0 && (
+                <span className="mobile-filter-toggle__badge">{activeFilterCount}</span>
+              )}
             </button>
-          )}
+          </div>
+
+          {/* Filter controls — on desktop always visible; on mobile toggled */}
+          <div className="tx-filters__controls">
+            {uniqueClients.length > 1 && (
+              <ClientCombobox
+                clients={uniqueClients}
+                value={clientFilter}
+                onChange={setClientFilter}
+                placeholder={t['filter_all_clients']}
+              />
+            )}
+
+            {uniqueCurrencies.length > 1 && (
+              <FilterDropdown
+                options={[
+                  { value: 'all', label: t['filter_all_currencies'] },
+                  ...uniqueCurrencies.map((c) => ({ value: c, label: c }))
+                ]}
+                value={currencyFilter}
+                onChange={setCurrencyFilter}
+              />
+            )}
+
+            <div className="tx-filter-sep" />
+
+            <DatePicker
+              compact
+              value={dateFrom}
+              onChange={setDateFrom}
+              placeholder={t['filter_from']}
+              locale={lang === 'ru' ? 'ru' : 'en'}
+            />
+            <DatePicker
+              compact
+              value={dateTo}
+              onChange={setDateTo}
+              placeholder={t['filter_to']}
+              locale={lang === 'ru' ? 'ru' : 'en'}
+            />
+
+            <div className="tx-filter-sep" />
+
+            <FilterStepper
+              value={amountMin}
+              onChange={(e) => setAmountMin(e.target.value)}
+              placeholder={t['filter_min']}
+              min={0}
+              title={t['filter_min']}
+            />
+            <FilterStepper
+              value={amountMax}
+              onChange={(e) => setAmountMax(e.target.value)}
+              placeholder={t['filter_max']}
+              min={0}
+              title={t['filter_max']}
+            />
+
+            <div className="tx-filter-sep" />
+
+            <FilterDropdown
+              options={sortOptions}
+              value={sort}
+              onChange={(v) => setSort(v as SortKey)}
+            />
+
+            {hasActiveFilters && (
+              <button className="tx-filter-reset" onClick={resetFilters} title={t['filter_reset']}>
+                <Icon name="x" size={13} />
+                {t['filter_reset']}
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -331,13 +352,26 @@ export function TransactionList() {
                       if (confirm(t['transaction_delete_confirm'])) deleteTransaction(rowIndex);
                     }}
                   >
-                    <Icon name="trash" size={13} />
+                  <Icon name="trash" size={13} />
                   </Button>
                 </div>
               </div>
             );
           })}
         </div>
+      )}
+
+      {/* FAB — quick add transaction on mobile */}
+      {!showForm && !editItem && (
+        <button
+          className="fab"
+          onClick={() => setShowForm(true)}
+          title={t['transaction_add']}
+          type="button"
+          aria-label={t['transaction_add']}
+        >
+          <Icon name="plus" size={18} />
+        </button>
       )}
     </div>
   );

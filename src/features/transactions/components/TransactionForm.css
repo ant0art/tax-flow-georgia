@@ -37,7 +37,13 @@
 }
 
 @media (max-width: 639px) {
-  .transaction-form__grid { grid-template-columns: 1fr; }
+  .transaction-form {
+    padding: var(--space-3);
+  }
+  /* 2-col grid on mobile: fields pair up instead of 1fr stack */
+  .transaction-form__grid { grid-template-columns: 1fr 1fr; }
+  /* Description gets full width, project compact below */
+  .transaction-form__grid--desc { grid-template-columns: 1fr; }
 }
 
 /* Inner row: Amount + Currency + NBG Rate (inside the 2fr left column) */
@@ -48,6 +54,7 @@
 }
 
 @media (max-width: 639px) {
+  /* Amount + Currency side-by-side; NBG rate below them */
   .transaction-form__amounts-inner { grid-template-columns: 1fr 1fr; }
 }
 

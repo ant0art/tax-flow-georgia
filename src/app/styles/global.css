@@ -295,12 +295,12 @@ html[data-theme] * {
   position: fixed;
   bottom: calc(80px + env(safe-area-inset-bottom));
   right: 16px;
-  width: 52px;
-  height: 52px;
-  border-radius: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   background: var(--color-primary);
   color: var(--color-primary-text);
-  box-shadow: var(--shadow-3);
+  box-shadow: var(--shadow-2);
   display: none; /* hidden by default — shown only on mobile */
   align-items: center;
   justify-content: center;

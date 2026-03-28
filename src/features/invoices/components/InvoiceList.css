@@ -22,7 +22,7 @@
   /* Sticky so users can access filters while scrolling */
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 20;
   background: var(--color-bg);
   padding-block: 6px;
 }
@@ -52,6 +52,24 @@
 
 .mobile-filter-toggle {
   display: none; /* hidden on desktop */
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: border-color var(--duration-fast), color var(--duration-fast);
+}
+.mobile-filter-toggle:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
 /* ── Mobile-only: active-filter badge on toggle button ── */
@@ -420,10 +438,10 @@
 /* ── Tablet + mobile: header visible, need sticky offset ── */
 @media (max-width: 1023px) {
   .invoice-list__filters {
-    top: 48px;  /* clear sticky app-header */
+    top: 56px;  /* header: 10px + 34px + 10px + 1px border = 55px -> 56px safe */
   }
   .invoice-list__extra-filters {
-    top: 90px;  /* 48px header + ~42px chips row */
+    top: 102px;  /* 56px header + ~46px chips row */
   }
 }
 
@@ -453,9 +471,10 @@
   }
 
   /* Compact extra-filters — collapsed by default on mobile */
+  /* invoice-list__filters chips bar: flex with toggle at far right */
   .invoice-list__filters {
     gap: 6px;
-    align-items: center;
+    justify-content: flex-start;
   }
 
   /* Show toggle button on mobile */
@@ -463,23 +482,22 @@
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    margin-left: auto; /* push to right of chips */
+    margin-left: auto; /* Push toggle to the right within sticky chips bar */
   }
   .mobile-filter-toggle__badge {
-    display: inline-block; /* badge visible when JS adds it */
+    display: inline-block;
   }
 
-  /* Extra-filters: hidden by default on mobile, shown when toggled */
+  /* Extra-filters: bar itself stays sticky; controls hidden unless toggled */
   .invoice-list__extra-filters {
     display: none;
-    top: calc(48px + 42px); /* header + chips row */
+    top: calc(56px + 46px); /* 56px header + ~46px chips row */
   }
   .invoice-list__extra-filters.is-open {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-  }
-  .invoice-list__extra-filters.is-open.has-active-filters {
-    border-color: var(--color-accent);
+    gap: 4px;
+    padding: 4px 6px;
   }
 }

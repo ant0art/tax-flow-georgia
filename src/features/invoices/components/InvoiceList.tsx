@@ -269,22 +269,11 @@ export function InvoiceList() {
           </span>
         </h1>
         <div className="list-header-actions">
-          <button
-            className="mobile-filter-toggle"
-            onClick={() => setShowFiltersMobile(!showFiltersMobile)}
-            title="Toggle filters"
-            type="button"
-          >
-            <Icon name="sliders" size={16} />
-            {activeExtraFilterCount > 0 && (
-              <span className="mobile-filter-toggle__badge">{activeExtraFilterCount}</span>
-            )}
-          </button>
           <Button size="sm" onClick={() => setShowForm(true)} title={t['invoice_new']}>{t['invoice_create']}</Button>
         </div>
       </div>
 
-      {/* Status filter chips */}
+      {/* Status filter chips + mobile filter toggle */}
       <div className="invoice-list__filters">
         {filterKeys.map((s) => (
           <button
@@ -298,6 +287,18 @@ export function InvoiceList() {
             }
           </button>
         ))}
+        {/* Toggle on mobile — lives in sticky bar, always reachable */}
+        <button
+          className="mobile-filter-toggle"
+          onClick={() => setShowFiltersMobile(!showFiltersMobile)}
+          type="button"
+          aria-expanded={showFiltersMobile}
+        >
+          <Icon name="sliders" size={14} />
+          {activeExtraFilterCount > 0 && (
+            <span className="mobile-filter-toggle__badge">{activeExtraFilterCount}</span>
+          )}
+        </button>
       </div>
 
       {/* Extra filters + sort */}

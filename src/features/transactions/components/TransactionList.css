@@ -408,36 +408,72 @@
 /* ── Tablet + mobile: header visible, need sticky offset ── */
 @media (max-width: 1023px) {
   .tx-filters {
-    top: 48px; /* clear the sticky app-header */
+    top: 56px; /* header: 10px padding + 34px content + 10px padding + 1px border = 55px */
   }
 }
 
 /* ── Compact mobile filters ── */
 @media (max-width: 639px) {
-  /* Show toggle button */
+  /* Desktop: toggle hidden (only needed on mobile) */
+  .tx-filters__toggle-row {
+    display: none;
+  }
+
+  /* tx-filters layout overrides */
+  .tx-filters {
+    flex-direction: column;
+    padding: 4px 10px;
+    gap: 0;
+  }
+
+  /* Toggle row: always visible, toggle pinned to right */
+  .tx-filters__toggle-row {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+    padding: 2px 0;
+  }
+
+  /* Show toggle chip */
   .mobile-filter-toggle {
     display: inline-flex;
     align-items: center;
     gap: 5px;
+    height: 28px;
+    padding: 0 10px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    color: var(--color-text-secondary);
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: border-color var(--duration-fast), color var(--duration-fast);
+  }
+  .mobile-filter-toggle:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
   }
   .mobile-filter-toggle__badge {
     display: inline-block;
   }
 
-  /* Filter panel: collapsed by default, shown when toggled */
-  .tx-filters.is-collapsed {
-    flex-wrap: nowrap;
-    overflow: hidden;
-    padding: 4px 6px;
-  }
-  .tx-filters.is-collapsed > *:not(.mobile-filter-toggle):not(.tx-filter-reset) {
+  /* Controls: hidden by default, shown when is-open */
+  .tx-filters__controls {
     display: none;
-  }
-  .tx-filters:not(.is-collapsed) {
     flex-wrap: wrap;
     gap: 4px;
-    padding: 4px 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--color-border);
+    margin-top: 4px;
+    width: 100%;
   }
+  .tx-filters.is-open .tx-filters__controls {
+    display: flex;
+  }
+
   .tx-filter-sep  { display: none; }
   .tx-filter-date { height: 26px; font-size: 12px; width: 110px; }
   .tx-filter-select { height: 26px; font-size: 12px; }
@@ -448,19 +484,10 @@
   .tx-filters .client-combobox__trigger { height: 26px; font-size: 12px; }
 
   /* Stats compact — 3 in a row, reduced font */
-  .stat-card {
-    padding: 6px 8px;
-  }
-  .stat-card__label {
-    font-size: 9px;
-    letter-spacing: 0.03em;
-  }
-  .stat-card__value {
-    font-size: 14px;
-    font-weight: 700;
-  }
+  .stat-card { padding: 6px 8px; }
+  .stat-card__label { font-size: 9px; letter-spacing: 0.03em; }
+  .stat-card__value { font-size: 14px; font-weight: 700; }
 }
-
 
 
 /* ── Empty state ── */
