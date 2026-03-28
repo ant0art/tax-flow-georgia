@@ -209,7 +209,6 @@
 /* Card */
 .invoice-card {
   position: relative;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
   gap: 6px;

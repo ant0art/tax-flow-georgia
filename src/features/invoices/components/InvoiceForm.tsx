@@ -248,10 +248,17 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
     setValue('clientIban', acc.iban);
   };
 
-  // Auto-select when currency changes and exactly 1 account matches
   const watchedCurrency = watch('currency');
   const watchedClientId = watch('clientId');
+
+  // Auto-select when currency changes and exactly 1 account matches
+  const isFirstRender = useRef(true);
   useEffect(() => {
+    // Skip on initial render in edit mode — data is already set from defaultValues
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     if (!watchedClientId) return;
     const client = clients.find((c) => c.id === watchedClientId);
     if (!client) return;
@@ -267,6 +274,7 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watchedCurrency, watchedClientId]);
+
 
   const onSubmit = async (data: InvoiceFormData) => {
     // If creating invoice AND immediately creating a transaction, mark invoice as paid

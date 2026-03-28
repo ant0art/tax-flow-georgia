@@ -421,7 +421,7 @@ export function InvoiceList() {
                 <div className="card-actions">
                   <Button size="sm" variant="ghost" className="action-btn--edit" title={t['invoice_edit']} onClick={() => {
                     const invItems = getItemsForInvoice(inv.id);
-                    setEditItem({ invoice: inv, items: invItems, rowIndex: i + 2 });
+                    setEditItem({ invoice: inv, items: invItems, rowIndex });
                   }}>
                     <Icon name="edit" size={13} />
                   </Button>
@@ -430,7 +430,7 @@ export function InvoiceList() {
                     <Icon name="copy" size={13} />
                   </Button>
                   <Button size="sm" variant="ghost" className="action-btn--delete" title={t['trash'] ?? 'Delete'} onClick={() => {
-                    if (confirm(t['invoice_delete_confirm'])) deleteInvoice({ id: inv.id, rowIndex: i + 2 });
+                    if (confirm(t['invoice_delete_confirm'])) deleteInvoice({ id: inv.id, rowIndex });
                   }}>
                     <Icon name="trash" size={13} />
                   </Button>
