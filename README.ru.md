@@ -131,7 +131,7 @@
 | **Генерация PDF** | @react-pdf/renderer v4 |
 | **Графики** | Recharts v3 |
 | **Работа с датами** | date-fns v4 |
-| **Аутентификация** | Google OAuth 2.0 (implicit flow, токен только в памяти) |
+| **Аутентификация** | Google OAuth 2.0 (implicit flow, токен в sessionStorage) |
 | **Хранение данных** | Google Sheets API v4 (Google Drive пользователя) |
 | **CI/CD** | GitHub Actions → GitHub Pages |
 
@@ -454,7 +454,7 @@ push в main
 
 | Аспект | Реализация |
 |---|---|
-| **Хранение токена** | Access token хранится только **в памяти Zustand** — никогда в localStorage или cookies |
+| **Хранение токена** | Access token хранится в **sessionStorage** — очищается при закрытии вкладки, не сохраняется на диск между сессиями |
 | **OAuth scopes** | Минимальные: `spreadsheets` + `drive.file` (только файлы, созданные этим приложением) |
 | **Content Security Policy** | Настроена в `index.html` для ограничения источников ресурсов |
 | **Нет бэкенда** | Никакой сервер не обрабатывает и не хранит ваши данные — всё остаётся в вашем Google аккаунте |

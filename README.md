@@ -131,7 +131,7 @@ The application solves the everyday financial workflow of a freelance IP:
 | **PDF Generation** | @react-pdf/renderer v4 |
 | **Charts** | Recharts v3 |
 | **Date Utilities** | date-fns v4 |
-| **Authentication** | Google OAuth 2.0 (implicit flow, in-memory token) |
+| **Authentication** | Google OAuth 2.0 (implicit flow, sessionStorage token) |
 | **Data Storage** | Google Sheets API v4 (user's own Drive) |
 | **CI/CD** | GitHub Actions → GitHub Pages |
 
@@ -456,7 +456,7 @@ Go to **Repository → Settings → Secrets and variables → Actions → New re
 
 | Aspect | Implementation |
 |---|---|
-| **Token storage** | Access token is stored in **Zustand memory only** — never in localStorage or cookies |
+| **Token storage** | Access token is stored in **sessionStorage** — cleared when the tab closes, never persisted to disk |
 | **OAuth scopes** | Minimal: `https://www.googleapis.com/auth/spreadsheets` + `drive.file` (only files created by this app) |
 | **Content Security Policy** | Configured in `index.html` to restrict resource origins |
 | **No backend** | No server processes or stores your data — everything stays in your Google account |
