@@ -28,6 +28,19 @@
 }
 
 .mobile-filter-toggle {
+  display: none; /* hidden on desktop */
+}
+
+.mobile-filter-toggle__badge {
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 0 5px;
+  min-width: 16px;
+  line-height: 16px;
+  text-align: center;
   display: none;
 }
 
@@ -162,7 +175,10 @@
 }
 
 @media (max-width: 639px) {
-  .transaction-stats { grid-template-columns: 1fr 1fr; }
+  .transaction-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-2);
+  }
 }
 
 .stat-card {
@@ -398,7 +414,27 @@
 
 /* ── Compact mobile filters ── */
 @media (max-width: 639px) {
-  .tx-filters {
+  /* Show toggle button */
+  .mobile-filter-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .mobile-filter-toggle__badge {
+    display: inline-block;
+  }
+
+  /* Filter panel: collapsed by default, shown when toggled */
+  .tx-filters.is-collapsed {
+    flex-wrap: nowrap;
+    overflow: hidden;
+    padding: 4px 6px;
+  }
+  .tx-filters.is-collapsed > *:not(.mobile-filter-toggle):not(.tx-filter-reset) {
+    display: none;
+  }
+  .tx-filters:not(.is-collapsed) {
+    flex-wrap: wrap;
     gap: 4px;
     padding: 4px 6px;
   }
@@ -410,6 +446,19 @@
   /* Ensure FilterDropdown + ClientCombobox match filter height */
   .tx-filters .filter-dropdown__trigger,
   .tx-filters .client-combobox__trigger { height: 26px; font-size: 12px; }
+
+  /* Stats compact — 3 in a row, reduced font */
+  .stat-card {
+    padding: 6px 8px;
+  }
+  .stat-card__label {
+    font-size: 9px;
+    letter-spacing: 0.03em;
+  }
+  .stat-card__value {
+    font-size: 14px;
+    font-weight: 700;
+  }
 }
 
 

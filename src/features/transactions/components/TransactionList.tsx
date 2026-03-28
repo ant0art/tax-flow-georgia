@@ -23,6 +23,10 @@ export function TransactionList() {
   const t = useT();
   const lang = useUIStore((s) => s.lang);
 
+  // Mobile filters collapsed by default
+  const [filtersCollapsed, setFiltersCollapsed] = useState(true);
+
+
   // ── Filter state ──
   const [clientFilter, setClientFilter] = useState<string>('all');
   const [currencyFilter, setCurrencyFilter] = useState<string>('all');
@@ -37,6 +41,10 @@ export function TransactionList() {
     dateFrom !== '' || dateTo !== '' ||
     amountMin !== '' || amountMax !== '' ||
     sort !== 'date-desc';
+
+  const activeFilterCount = [clientFilter !== 'all', currencyFilter !== 'all',
+    dateFrom !== '', dateTo !== '', amountMin !== '', amountMax !== '',
+    sort !== 'date-desc'].filter(Boolean).length;
 
   const resetFilters = () => {
     setClientFilter('all');
@@ -153,7 +161,18 @@ export function TransactionList() {
 
       {/* Filter bar — always visible */}
       {transactions.length > 0 && (
-        <div className="tx-filters">
+        <div className={`tx-filters${filtersCollapsed ? ' is-collapsed' : ''}`}>
+          <button
+            className="mobile-filter-toggle"
+            type="button"
+            onClick={() => setFiltersCollapsed(c => !c)}
+            title="Toggle filters"
+          >
+            <Icon name="sliders" size={16} />
+            {activeFilterCount > 0 && (
+              <span className="mobile-filter-toggle__badge">{activeFilterCount}</span>
+            )}
+          </button>
           {uniqueClients.length > 1 && (
             <ClientCombobox
               clients={uniqueClients}

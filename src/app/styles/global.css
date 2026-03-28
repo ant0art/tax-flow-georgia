@@ -289,3 +289,42 @@ html[data-theme] * {
   background: rgba(220, 60, 50, 0.10) !important;
   color: hsl(4 72% 55%) !important;
 }
+
+/* ── FAB — Floating Action Button (mobile create shortcut) ── */
+.fab {
+  position: fixed;
+  bottom: calc(80px + env(safe-area-inset-bottom));
+  right: 16px;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: var(--color-primary);
+  color: var(--color-primary-text);
+  box-shadow: var(--shadow-3);
+  display: none; /* hidden by default — shown only on mobile */
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  transition: transform var(--duration-fast) var(--easing-default),
+              box-shadow var(--duration-fast) var(--easing-default);
+  animation: fab-enter 200ms var(--easing-decelerate) both;
+}
+
+@keyframes fab-enter {
+  from { transform: scale(0.7); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+.fab:hover {
+  transform: scale(1.06);
+  box-shadow: var(--shadow-4);
+}
+
+.fab:active {
+  transform: scale(0.96);
+}
+
+/* Show FAB only on mobile/tablet where header button scrolls away */
+@media (max-width: 1023px) {
+  .fab { display: flex; }
+}

@@ -250,6 +250,11 @@ export const translations = {
     sort_amount_asc: 'Amount ↑',
     sort_client_asc: 'Client A→Z',
     sort_client_desc: 'Client Z→A',
+
+    // Actions (missing keys used in components)
+    copy: 'Copy',
+    trash: 'Delete',
+    transaction_edit: 'Edit transaction',
   },
 
   ru: {
@@ -503,6 +508,11 @@ export const translations = {
     sort_amount_asc: 'Сумма ↑',
     sort_client_asc: 'Клиент А→Я',
     sort_client_desc: 'Клиент Я→А',
+
+    // Actions (missing keys used in components)
+    copy: 'Копировать',
+    trash: 'Удалить',
+    transaction_edit: 'Редактировать транзакцию',
   },
 } as const;
 

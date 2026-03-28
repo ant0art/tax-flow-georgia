@@ -51,7 +51,21 @@
 }
 
 .mobile-filter-toggle {
-  display: none;
+  display: none; /* hidden on desktop */
+}
+
+/* ── Mobile-only: active-filter badge on toggle button ── */
+.mobile-filter-toggle__badge {
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 0 5px;
+  min-width: 16px;
+  line-height: 16px;
+  text-align: center;
+  display: none; /* shown only when count > 0 */
 }
 
 
@@ -216,11 +230,14 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  transition: box-shadow var(--duration-fast) var(--easing-default);
+  /* Use filter instead of box-shadow to avoid creating a stacking context */
+  transition: filter var(--duration-fast) var(--easing-default);
   border-left: 3px solid var(--color-border);
+  /* Do NOT create a new stacking context — allows .status-picker__dropdown z-index to escape */
+  isolation: auto;
 }
 
-.invoice-card:hover { box-shadow: var(--shadow-2); }
+.invoice-card:hover { filter: drop-shadow(0 2px 8px rgba(0,0,0,0.10)); }
 
 .invoice-card--paid   { border-left-color: var(--color-success); }
 .invoice-card--sent   { border-left-color: var(--color-accent); }
@@ -241,7 +258,11 @@
 /* ── StatusPicker ── */
 .status-picker {
   position: relative;
+  /* Ensure dropdown escapes the card's stacking context */
+  isolation: auto;
+  z-index: 1;
 }
+
 
 .status-badge {
   display: inline-flex;
@@ -279,7 +300,8 @@
   position: absolute;
   top: calc(100% + 4px);
   right: 0;
-  z-index: 200;
+  /* Must be above sticky filters (z-index:10/19) AND app-header (z-index:100) */
+  z-index: 300;
   min-width: 140px;
   background: var(--color-surface-raised);
   border: 1px solid var(--color-border);
@@ -426,20 +448,38 @@
     display: none; 
   }
   .invoice-card__bottom {
-    padding-right: 100px;
+    /* Removed: padding-right: 100px — was a hack that squeezed amount area */
+    padding-right: 0;
   }
 
-  /* Compact extra-filters — always visible, no toggle */
+  /* Compact extra-filters — collapsed by default on mobile */
+  .invoice-list__filters {
+    gap: 6px;
+    align-items: center;
+  }
+
+  /* Show toggle button on mobile */
+  .mobile-filter-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: auto; /* push to right of chips */
+  }
+  .mobile-filter-toggle__badge {
+    display: inline-block; /* badge visible when JS adds it */
+  }
+
+  /* Extra-filters: hidden by default on mobile, shown when toggled */
   .invoice-list__extra-filters {
-    gap: 4px;
-    padding: 4px 6px;
+    display: none;
+    top: calc(48px + 42px); /* header + chips row */
   }
-  .inv-filter-label { display: none; }
-  .inv-filter-sep   { display: none; }
-  .inv-filter-input  { height: 26px; font-size: 12px; }
-  .inv-filter-reset  { height: 26px; font-size: 12px; padding: 0 var(--space-2); }
-
-  /* Ensure FilterDropdown + ClientCombobox match filter height */
-  .invoice-list__extra-filters .filter-dropdown__trigger,
-  .invoice-list__extra-filters .client-combobox__trigger { height: 26px; font-size: 12px; }
+  .invoice-list__extra-filters.is-open {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .invoice-list__extra-filters.is-open.has-active-filters {
+    border-color: var(--color-accent);
+  }
 }

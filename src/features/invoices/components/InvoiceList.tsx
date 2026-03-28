@@ -126,6 +126,10 @@ export function InvoiceList() {
   // Mobile filters toggle
   const [showFiltersMobile, setShowFiltersMobile] = useState(false);
 
+  // Count of active extra filters (for badge)
+  const activeExtraFilterCount = [dateFrom, dateTo, clientFilter, amountMin, amountMax].filter(Boolean).length
+    + (sortBy !== 'date_desc' ? 1 : 0);
+
   // Infinite scroll
   const [visibleCount, setVisibleCount] = useState(20);
   const observer = useRef<IntersectionObserver | null>(null);
@@ -265,15 +269,17 @@ export function InvoiceList() {
           </span>
         </h1>
         <div className="list-header-actions">
-          <Button 
-            className="mobile-filter-toggle" 
-            variant="ghost" 
-            size="sm" 
+          <button
+            className="mobile-filter-toggle"
             onClick={() => setShowFiltersMobile(!showFiltersMobile)}
             title="Toggle filters"
+            type="button"
           >
             <Icon name="sliders" size={16} />
-          </Button>
+            {activeExtraFilterCount > 0 && (
+              <span className="mobile-filter-toggle__badge">{activeExtraFilterCount}</span>
+            )}
+          </button>
           <Button size="sm" onClick={() => setShowForm(true)} title={t['invoice_new']}>{t['invoice_create']}</Button>
         </div>
       </div>
@@ -295,7 +301,7 @@ export function InvoiceList() {
       </div>
 
       {/* Extra filters + sort */}
-      <div className={`invoice-list__extra-filters ${showFiltersMobile ? 'is-open' : ''}`}>
+      <div className={`invoice-list__extra-filters${showFiltersMobile ? ' is-open' : ''}${hasActiveFilters ? ' has-active-filters' : ''}`}>
         {/* Date range */}
         <div className="inv-filter-group">
           <label className="inv-filter-label">{t['filter_from']}</label>
@@ -439,6 +445,19 @@ export function InvoiceList() {
             );
           })}
         </div>
+      )}
+
+      {/* FAB — create invoice from anywhere in the list */}
+      {!showForm && !editItem && (
+        <button
+          className="fab"
+          onClick={() => setShowForm(true)}
+          title={t['invoice_new']}
+          type="button"
+          aria-label={t['invoice_new']}
+        >
+          <Icon name="plus" size={24} />
+        </button>
       )}
     </div>
   );
