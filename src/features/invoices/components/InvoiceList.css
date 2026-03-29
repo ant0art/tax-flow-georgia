@@ -287,14 +287,14 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  /* Use filter instead of box-shadow to avoid creating a stacking context */
-  transition: filter var(--duration-fast) var(--easing-default);
+  /* Use box-shadow (NOT filter) so no stacking context is created —
+     filter: drop-shadow() would trap .status-picker__dropdown z-index inside the card */
+  transition: box-shadow var(--duration-fast) var(--easing-default);
   border-left: 3px solid var(--color-border);
-  /* Do NOT create a new stacking context — allows .status-picker__dropdown z-index to escape */
   isolation: auto;
 }
 
-.invoice-card:hover { filter: drop-shadow(0 2px 8px rgba(0,0,0,0.10)); }
+.invoice-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.12); }
 
 .invoice-card--paid   { border-left-color: var(--color-success); }
 .invoice-card--sent   { border-left-color: var(--color-accent); }
@@ -304,34 +304,41 @@
 .invoice-card__top {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;   /* badge stays top-right even if client name wraps */
+  gap: var(--space-2);
 }
 
 .invoice-card__number {
   font: var(--text-small);
   color: var(--color-text-tertiary);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ── StatusPicker ── */
 .status-picker {
   position: relative;
-  /* Ensure dropdown escapes the card's stacking context */
-  isolation: auto;
-  z-index: 1;
+  /* Do NOT set z-index here — it would create a stacking context, trapping the
+     dropdown at that level. z-index: 300 on the dropdown itself handles elevation. */
 }
 
 
 .status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font: var(--text-caption);
+  gap: 3px;
+  font-size: 11px;
   font-weight: 600;
-  padding: 3px var(--space-2);
+  line-height: 1;
+  white-space: nowrap;          /* never wrap status text */
+  padding: 3px 6px;
   border-radius: var(--radius-sm);
   border: 1px solid currentColor;
   background: transparent;
   cursor: pointer;
+  flex-shrink: 0;               /* don't compress inside card top row */
   transition: opacity var(--duration-fast);
 }
 
@@ -509,19 +516,25 @@
     padding-right: 0;
   }
 
-  /* Compact extra-filters — collapsed by default on mobile */
+  /* ── Filter row: just 2 items now — no scroll needed ── */
   .invoice-list__filters {
-    row-gap: 8px;
-    column-gap: 6px;
-    justify-content: flex-start;
+    flex-wrap: nowrap;
+    gap: 6px;
+    padding-block: 6px;
   }
 
-  /* Show toggle chip INSIDE the chips row */
+  /* Status multi-select trigger + extra filter toggle: no shrinking */
+  .invoice-list__filters > * {
+    flex-shrink: 0;
+  }
+
+  /* Show toggle chip on mobile (simple, no sticky tricks needed) */
   .mobile-filter-toggle {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    margin-left: auto; /* push to far right edge */
+    margin-left: auto;            /* push to far right */
+    flex-shrink: 0;
   }
   .mobile-filter-toggle--open {
     border-color: var(--color-accent);
@@ -554,9 +567,10 @@
     padding: 4px 0;
     background: none;
     border: none;
-    /* sticky so pills stay visible during scroll (FAB is already sticky above) */
+    /* sticky so pills stay visible during scroll */
     position: sticky;
-    top: 102px; /* 56px header + ~46px chips row */
+    /* 56px header + 44px chips row (single line: 30px chip + 2×7px padding-block) */
+    top: 100px;
   }
   .invoice-list__extra-filters.has-active-filters .inv-filters__active-summary {
     display: flex;
@@ -569,7 +583,7 @@
   .invoice-list__extra-filters.is-open {
     display: flex;
     position: sticky;
-    top: 102px; /* 56px header + ~46px chips row */
+    top: 100px; /* 56px header + 44px chips row */
     padding: var(--space-2) var(--space-3);
     background: var(--color-surface-inset);
     border: 1px solid var(--color-border);

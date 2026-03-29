@@ -11,6 +11,7 @@ import { Icon } from '@/shared/ui/Icon';
 import { CURRENCY_SYMBOL } from '@/shared/lib/currencies';
 import { ClientCombobox } from '@/shared/ui/ClientCombobox';
 import { FilterDropdown } from '@/shared/ui/FilterDropdown';
+import { StatusMultiSelect } from '@/shared/ui/StatusMultiSelect';
 import { FilterStepper } from '@/shared/ui/FilterStepper';
 import { DatePicker } from '@/shared/ui/DatePicker';
 import './InvoiceList.css';
@@ -115,7 +116,7 @@ export function InvoiceList() {
   const [changingStatusId, setChangingStatusId] = useState<string | null>(null);
 
   // ── Filters ──
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [statusFilters, setStatusFilters] = useState<Set<string>>(new Set());
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [clientFilter, setClientFilter] = useState('');
@@ -127,6 +128,7 @@ export function InvoiceList() {
   const [showFiltersMobile, setShowFiltersMobile] = useState(false);
 
   // Count of active extra filters (for badge)
+  // Badge on [≡] counts only extra filters (date, client, amount, sort) — status has its own button
   const activeExtraFilterCount = [dateFrom, dateTo, clientFilter, amountMin, amountMax].filter(Boolean).length
     + (sortBy !== 'date_desc' ? 1 : 0);
 
@@ -148,10 +150,10 @@ export function InvoiceList() {
     return names.sort((a, b) => a.localeCompare(b));
   }, [invoices]);
 
-  const hasActiveFilters = statusFilter !== 'all' || dateFrom || dateTo || clientFilter || amountMin || amountMax || sortBy !== 'date_desc';
+  const hasActiveFilters = statusFilters.size > 0 || !!dateFrom || !!dateTo || !!clientFilter || !!amountMin || !!amountMax || sortBy !== 'date_desc';
 
   const resetFilters = () => {
-    setStatusFilter('all');
+    setStatusFilters(new Set());
     setDateFrom('');
     setDateTo('');
     setClientFilter('');
@@ -164,9 +166,9 @@ export function InvoiceList() {
   const filtered = useMemo(() => {
     let result = invoices;
 
-    // 1. Status
-    if (statusFilter !== 'all') {
-      result = result.filter((inv) => inv.status === statusFilter);
+    // 1. Status (empty Set = show all)
+    if (statusFilters.size > 0) {
+      result = result.filter((inv) => statusFilters.has(inv.status));
     }
 
     // 2. Date range (by invoice date)
@@ -193,7 +195,7 @@ export function InvoiceList() {
       case 'client_desc': sorted.sort((a, b) => b.clientName.localeCompare(a.clientName)); break;
     }
     return sorted;
-  }, [invoices, statusFilter, dateFrom, dateTo, clientFilter, amountMin, amountMax, sortBy]);
+  }, [invoices, statusFilters, dateFrom, dateTo, clientFilter, amountMin, amountMax, sortBy]);
 
   const [prevFilteredLength, setPrevFilteredLength] = useState(filtered.length);
   if (filtered.length !== prevFilteredLength) {
@@ -254,7 +256,11 @@ export function InvoiceList() {
     return <InvoiceForm initial={editItem} onDone={() => setEditItem(null)} />;
   }
 
-  const filterKeys: string[] = ['all', 'draft', 'sent', 'paid', 'overdue'];
+  const statusOptions = STATUS_OPTIONS.map((opt) => ({
+    value: opt.value,
+    label: t[opt.labelKey],
+    icon: STATUS_ICONS[opt.value].icon,
+  }));
 
   return (
     <div className="invoice-list">
@@ -273,21 +279,15 @@ export function InvoiceList() {
         </div>
       </div>
 
-      {/* Status chips + FAB in ONE sticky row */}
+      {/* Status multi-select + extra-filters toggle in one sticky row */}
       <div className="invoice-list__filters">
-        {filterKeys.map((s) => (
-          <button
-            key={s}
-            className={`filter-chip ${statusFilter === s ? 'filter-chip--active' : ''}`}
-            onClick={() => setStatusFilter(s)}
-          >
-            {s === 'all'
-              ? t['invoice_filter_all']
-              : <>{STATUS_ICONS[s].icon} {t[STATUS_ICONS[s].labelKey]}</>
-            }
-          </button>
-        ))}
-        {/* FAB — pushed to far right via margin-left:auto, sticky with the row */}
+        <StatusMultiSelect
+          value={statusFilters}
+          onChange={setStatusFilters}
+          options={statusOptions}
+          labelAll={t['invoice_filter_all']}
+        />
+        {/* Extra filters toggle — always visible on mobile */}
         <button
           className={`mobile-filter-toggle${showFiltersMobile ? ' mobile-filter-toggle--open' : ''}`}
           onClick={() => setShowFiltersMobile(!showFiltersMobile)}
@@ -406,8 +406,8 @@ export function InvoiceList() {
       {filtered.length === 0 ? (
         <div className="invoice-list__empty">
           <Icon name="file-text" size={32} className="empty-icon" />
-          <p>{statusFilter === 'all' && !hasActiveFilters ? t['invoice_empty'] : t['invoice_empty_filter']}</p>
-          {statusFilter === 'all' && !hasActiveFilters && (
+          <p>{!hasActiveFilters ? t['invoice_empty'] : t['invoice_empty_filter']}</p>
+          {!hasActiveFilters && (
             <p className="empty-hint">{t['invoice_empty_hint']}</p>
           )}
         </div>

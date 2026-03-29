@@ -47,7 +47,8 @@ export type IconName =
   | 'lock'
   | 'unlock'
   | 'columns-1'
-  | 'columns-2';
+  | 'columns-2'
+  | 'check';
 
 const PATHS: Record<IconName, ReactElement> = {
   'chart-bar': (
@@ -328,6 +329,9 @@ const PATHS: Record<IconName, ReactElement> = {
       <rect x="3" y="3" width="18" height="18" rx="2" />
       <line x1="12" y1="3" x2="12" y2="21" />
     </>
+  ),
+  'check': (
+    <polyline points="20 6 9 17 4 12" />
   ),
 };
 

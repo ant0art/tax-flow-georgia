@@ -605,7 +605,7 @@
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
-    gap: var(--space-2);
+    gap: 4px;               /* tighter gap so formula fits on one line */
     padding: var(--space-2);
     padding-top: 36px;  /* more room so remove button doesn't crowd description */
     border: 1px solid var(--color-border);
@@ -670,10 +670,10 @@
     line-height: 1;
   }
 
-  /* Qty stepper: wide enough for 3-digit quantities */
+  /* Qty stepper: narrower to save space for price */
   .qty-stepper {
     flex: none;
-    width: 62px;
+    width: 54px;
     height: 32px;
     order: unset;
   }
@@ -714,9 +714,9 @@
     line-height: 1;
   }
 
-  /* Price input: wide enough for ~8 digits + 2 decimal = "12345.67" */
+  /* Price input: wider to accommodate multi-digit prices */
   .items-table__price-wrap .field__input {
-    width: 100px;
+    width: 108px;
     flex: none;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
@@ -797,9 +797,9 @@
 /* ── Extra-narrow (xs tier, ≤479px): tighten formula ── */
 @media (max-width: 479px) {
   .qty-stepper {
-    width: 56px;
+    width: 50px;
   }
   .items-table__price-wrap .field__input {
-    width: 88px;
+    width: 96px;
   }
 }

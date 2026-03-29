@@ -1,0 +1,138 @@
+/* ── Status Multi-Select ── */
+
+.status-msel {
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* Trigger inherits .filter-chip styles; we add gap + icon alignment */
+.status-msel__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  /* min-width so the pill doesn't collapse too narrow */
+  min-width: 56px;
+}
+
+/* Count badge (2+ selected) */
+.status-msel__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.28);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Chevron rotates when open */
+.status-msel__chevron {
+  transition: transform var(--duration-fast);
+  opacity: 0.65;
+  flex-shrink: 0;
+}
+.status-msel__chevron--open {
+  transform: rotate(180deg);
+}
+
+/* ── Dropdown menu ── */
+.status-msel__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 300;
+  min-width: 164px;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-3);
+  padding: var(--space-1);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  /* Animate in */
+  animation: status-msel-appear 120ms var(--easing-default) both;
+}
+
+@keyframes status-msel-appear {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Separator between "All" and status options */
+.status-msel__sep {
+  height: 1px;
+  background: var(--color-border);
+  margin: 2px 0;
+}
+
+/* ── Menu option ── */
+.status-msel__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  font: var(--text-small);
+  font-weight: 500;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  color: var(--color-text-secondary);
+  transition: background var(--duration-fast);
+}
+
+.status-msel__option:hover {
+  background: var(--color-surface-inset);
+}
+
+/* "All" option style */
+.status-msel__option--all {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+/* Per-status colors (match status-picker__option colors) */
+.status-msel__option--draft   { color: var(--color-text-tertiary); }
+.status-msel__option--sent    { color: var(--color-accent); }
+.status-msel__option--paid    { color: var(--color-success); }
+.status-msel__option--overdue { color: var(--color-warning); }
+
+/* ── Checkbox indicator ── */
+.status-msel__checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid currentColor;
+  border-radius: 3px;
+  flex-shrink: 0;
+  opacity: 0.65;
+  transition: background var(--duration-fast), opacity var(--duration-fast);
+}
+
+/* Checked state: fill box with current color, white icon inside */
+.status-msel__option--checked .status-msel__checkbox {
+  background: currentColor;
+  border-color: currentColor;
+  opacity: 1;
+}
+
+/* The check SVG inside needs to be white */
+.status-msel__option--checked .status-msel__checkbox svg {
+  color: var(--color-bg);
+}
+
+/* "All" checked mark: neutral dark */
+.status-msel__option--all.status-msel__option--checked .status-msel__checkbox {
+  background: var(--color-text);
+  border-color: var(--color-text);
+  opacity: 1;
+}
