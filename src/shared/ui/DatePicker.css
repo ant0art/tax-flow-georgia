@@ -7,6 +7,8 @@
   position: relative;
   display: flex;
   align-items: stretch;
+  height: var(--control-height-form);  /* match 32px canonical height of other inputs */
+  box-sizing: border-box;              /* border included in 32px — no extra 2px from border */
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   overflow: hidden;

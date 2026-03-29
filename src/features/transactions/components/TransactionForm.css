@@ -26,25 +26,46 @@
   gap: 6px;
 }
 
-/* ── Desktop: flexible grid layouts ── */
+/* ── Desktop: two-column grid layouts ── */
 .transaction-form__grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 140px 1fr;   /* date fixed 140px, client fills rest */
   gap: var(--space-3);
+  align-items: start;                 /* don't stretch — prevents DatePicker from growing to Client's height */
 }
 
+/* Description + Project row, Amounts + Computed row — 2fr | 1fr split */
 .transaction-form__grid--desc {
   grid-template-columns: 2fr 1fr;
 }
 
 /* Inner row: Amount + Currency + NBG Rate */
 .transaction-form__amounts-inner {
-  display: grid;
-  grid-template-columns: 1fr 1fr 0.7fr;
-  gap: var(--space-3);
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--space-2);
+  align-items: flex-start;   /* align label tops — hint text won't shift inputs */
 }
 
-/* All fields in amounts-inner must respect their column — no browser min-width escape */
+/* Amount: grows to fill remaining space */
+.transaction-form__amounts-inner > .field:first-child {
+  flex: 1 1 100px;
+  min-width: 80px;
+}
+
+/* Currency: fixed width, enough for "USD ($)" */
+.transaction-form__amounts-inner > .field:nth-child(2) {
+  flex: 0 0 110px;
+  min-width: 0;
+}
+
+/* NBG Rate: fixed width — must fit "2.7820" + stepper buttons */
+.transaction-form__amounts-inner > .field-with-indicator {
+  flex: 0 0 106px;
+  min-width: 0;
+}
+
+/* All fields in amounts-inner must respect flex sizes */
 .transaction-form__amounts-inner > * {
   min-width: 0;
 }
@@ -59,6 +80,7 @@
   background: var(--color-surface-inset);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
+  min-width: 0;              /* allow shrinking in grid */
 }
 
 .transaction-form__gel,
@@ -66,16 +88,33 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--space-2);
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+/* Label: can shrink/wrap; value stays on right */
+.transaction-form__gel .field__label,
+.transaction-form__tax .field__label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .transaction-form__gel .amount {
   font: var(--text-h3);
   color: var(--color-success);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .transaction-form__tax .amount {
   font: var(--text-body);
   color: var(--color-warning);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* ── Mobile: compact single-screen layout (≤639px) ── */
@@ -85,35 +124,31 @@
     gap: var(--space-2);
   }
 
-  /* Row 1: [Date 148px] [Client fills rest]
-     148px = YYYY-MM-DD (10ch × ~9px) + calendar icon 28px + 2×8px padding + 2px border = ~118px
-     Add 30px margin for safety → 148px */
+  /* Row 1 (Date + Client): 148px date, client fills rest */
   .transaction-form__grid {
     grid-template-columns: 148px 1fr;
     gap: var(--space-2);
   }
 
-  /* Description + Project: each full width */
+  /* Row 1b (Desc + Project) and Row 2 (Amounts + Computed):
+     both use --desc, switch to single-column stack.
+     align-items: stretch — override grid's align-items:start so inputs fill full width */
   .transaction-form__grid--desc {
-    grid-template-columns: 1fr;
-  }
-
-  /* Amounts row outer wrapper: override grid, use flex-column
-     so computed card doesn't stretch to grid column width */
-  .transaction-form__grid.transaction-form__grid--desc {
     display: flex;
     flex-direction: column;
+    align-items: stretch;   /* inputs fill full container width */
     gap: var(--space-2);
   }
 
-  /* Amount row: flex instead of grid so buttons stay fully accessible
-     Amount gets ~half, Currency fixed, NBG fixed — no button clipping */
+  /* Amount row: flex nowrap so all three fields fit in one horizontal line */
   .transaction-form__amounts-inner {
     display: flex;
+    flex-wrap: nowrap;
     gap: var(--space-2);
+    align-items: flex-start;   /* align label tops — hint won't shift other inputs */
   }
 
-  /* Amount gets all remaining space — stepper buttons always reachable */
+  /* Amount: grows to fill remaining space */
   .transaction-form__amounts-inner > .field:first-child {
     flex: 1 1 0;
     min-width: 0;
@@ -125,26 +160,19 @@
     min-width: 0;
   }
 
-  /* NBG Rate: compact, auto-filled */
+  /* NBG Rate: fits "2.7820" + stepper buttons */
   .transaction-form__amounts-inner > .field-with-indicator {
-    flex: 0 0 88px;
+    flex: 0 0 96px;
     min-width: 0;
   }
 
-  /* GEL/Tax result card: compact, not full-width
-     Sits as two badges side by side */
-  .transaction-form__grid.transaction-form__grid--desc:last-of-type {
-    display: block; /* collapse the outer 2fr|1fr wrapper */
-  }
-
+  /* Computed: compact horizontal side-by-side pill */
   .transaction-form__computed {
-    /* Compact horizontal pill: [AMOUNT IN GEL: 0.00₾] [TAX: 0.00₾] */
     flex-direction: row;
     justify-content: flex-start;
     gap: var(--space-4);
     padding: var(--space-2) var(--space-3);
     width: auto;
-    /* Right-aligned — since parent is flex-column, align-self pushes to flex-end */
     align-self: flex-end;
   }
 

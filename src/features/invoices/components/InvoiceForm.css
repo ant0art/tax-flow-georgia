@@ -195,14 +195,14 @@
 /* ── Multiline description textarea ── */
 .items-table__desc {
   width: 100%;
-  min-height: 32px;
+  min-height: 52px;
   padding: 6px var(--space-3);
   background: var(--color-surface-inset);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   font: var(--text-body);
   color: var(--color-text);
-  resize: none;                /* hide the drag handle */
+  resize: vertical;            /* allow user to resize if needed */
   overflow: hidden;            /* hide scrollbar — content scrolls via field-sizing */
   field-sizing: content;       /* auto-grow as user types (Chrome 123+, Firefox 129+) */
   box-sizing: border-box;

@@ -184,7 +184,7 @@ export function TransactionList() {
             <span className="stat-card__value amount">{stats.totalTax.toFixed(2)} ₾</span>
           </div>
           <div className="stat-card stat-card--net">
-            <span className="stat-card__label">Net income</span>
+            <span className="stat-card__label">{t['transaction_net_income']}</span>
             <span className="stat-card__value amount">{(stats.totalGEL - stats.totalTax).toFixed(2)} ₾</span>
           </div>
         </div>
