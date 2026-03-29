@@ -376,20 +376,23 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
 
       {/* ── Section 1: Invoice details ── */}
       <section className="invoice-form__section">
-        <h2 className="invoice-form__section-title">
-          <Icon name={isEdit ? 'edit' : 'file-text'} size={13} />
-          {isEdit ? t['invoice_edit'] : t['invoice_new']}
-        </h2>
+        {/* Header with title + inline Number field (auto-generated, muted) */}
+        <div className="invoice-form__section-header">
+          <h2 className="invoice-form__section-title">
+            <Icon name={isEdit ? 'edit' : 'file-text'} size={13} />
+            {isEdit ? t['invoice_edit'] : t['invoice_new']}
+          </h2>
+          <input
+            className="invoice-form__number-input"
+            title={t['invoice_number']}
+            aria-label={t['invoice_number']}
+            {...register('number')}
+          />
+        </div>
 
-        {/* Row 1: Number · Date · Due date · Currency */}
+        {/* Row 1: Date · Due date · Currency */}
         <div className="invoice-form__field-group">
           <div className="invoice-form__meta">
-            <Input
-              label={t['invoice_number']}
-              error={errors.number?.message}
-              mono
-              {...register('number')}
-            />
             <DatePicker
               label={t['invoice_date']}
               value={watch('date')}
@@ -476,7 +479,9 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
           <div className="items-table__head">
             <span>{t['invoice_desc']}</span>
             <span>{t['invoice_qty']}</span>
+            <span>{/* × col */}</span>
             <span>{t['invoice_price']}</span>
+            <span>{/* = col */}</span>
             <span>{t['invoice_total']}</span>
             <span></span>
           </div>
@@ -494,66 +499,82 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
                   if (e.key === 'Enter' && !e.shiftKey) e.preventDefault();
                 }}
               />
-              {/* qty label: visible on mobile only (CSS shows it on ≤639px) */}
-              <span className="items-table__qty-label" aria-hidden="true">qty</span>
-              <div className="qty-stepper" aria-label={t['invoice_qty']}>
-                <input
-                  className="qty-stepper__input"
-                  inputMode="decimal"
-                  placeholder="Qty"
-                  title={t['invoice_qty']}
-                  value={itemDisplayValues[`qty-${idx}`] ?? String(item.quantity)}
-                  onChange={(e) => handleAmountChange(idx, 'quantity', e.target.value)}
-                  onBlur={() => handleAmountBlur(idx, 'quantity')}
-                  onFocus={handleAmountFocus}
-                />
-                <div className="qty-stepper__side">
-                  <button
-                    type="button"
-                    className="qty-stepper__btn"
-                    tabIndex={-1}
-                    aria-label="Increase quantity"
-                    onClick={() => {
-                      const cur = parseFloat(itemDisplayValues[`qty-${idx}`] ?? '1') || 0;
-                      const next = String(cur + 1);
-                      setItemDisplayValues((prev) => ({ ...prev, [`qty-${idx}`]: next }));
-                      updateItem(idx, 'quantity', cur + 1);
-                    }}
-                  >
-                    <svg width="8" height="6" viewBox="0 0 8 6" fill="none" aria-hidden="true">
-                      <path d="M4 0.5L7.5 5.5H0.5L4 0.5Z" fill="currentColor"/>
-                    </svg>
-                  </button>
-                  <button
-                    type="button"
-                    className="qty-stepper__btn"
-                    tabIndex={-1}
-                    aria-label="Decrease quantity"
-                    onClick={() => {
-                      const cur = parseFloat(itemDisplayValues[`qty-${idx}`] ?? '1') || 0;
-                      const next = String(Math.max(0, cur - 1));
-                      setItemDisplayValues((prev) => ({ ...prev, [`qty-${idx}`]: next }));
-                      updateItem(idx, 'quantity', Math.max(0, cur - 1));
-                    }}
-                  >
-                    <svg width="8" height="6" viewBox="0 0 8 6" fill="none" aria-hidden="true">
-                      <path d="M4 5.5L0.5 0.5H7.5L4 5.5Z" fill="currentColor"/>
-                    </svg>
-                  </button>
+
+              {/* Spacer: pushes formula group to the right on mobile */}
+              <span className="items-table__formula-spacer" />
+
+              {/* QTY: label + stepper wrapper */}
+              <div className="items-table__qty-wrap">
+                <span className="items-table__qty-label" aria-hidden="true">{t['invoice_qty'] ?? 'qty'}</span>
+                <div className="qty-stepper" aria-label={t['invoice_qty']}>
+                  <input
+                    className="qty-stepper__input"
+                    inputMode="decimal"
+                    placeholder="Qty"
+                    title={t['invoice_qty']}
+                    value={itemDisplayValues[`qty-${idx}`] ?? String(item.quantity)}
+                    onChange={(e) => handleAmountChange(idx, 'quantity', e.target.value)}
+                    onBlur={() => handleAmountBlur(idx, 'quantity')}
+                    onFocus={handleAmountFocus}
+                  />
+                  <div className="qty-stepper__side">
+                    <button
+                      type="button"
+                      className="qty-stepper__btn"
+                      tabIndex={-1}
+                      aria-label="Increase quantity"
+                      onClick={() => {
+                        const cur = parseFloat(itemDisplayValues[`qty-${idx}`] ?? '1') || 0;
+                        const next = String(cur + 1);
+                        setItemDisplayValues((prev) => ({ ...prev, [`qty-${idx}`]: next }));
+                        updateItem(idx, 'quantity', cur + 1);
+                      }}
+                    >
+                      <svg width="8" height="6" viewBox="0 0 8 6" fill="none" aria-hidden="true">
+                        <path d="M4 0.5L7.5 5.5H0.5L4 0.5Z" fill="currentColor"/>
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      className="qty-stepper__btn"
+                      tabIndex={-1}
+                      aria-label="Decrease quantity"
+                      onClick={() => {
+                        const cur = parseFloat(itemDisplayValues[`qty-${idx}`] ?? '1') || 0;
+                        const next = String(Math.max(0, cur - 1));
+                        setItemDisplayValues((prev) => ({ ...prev, [`qty-${idx}`]: next }));
+                        updateItem(idx, 'quantity', Math.max(0, cur - 1));
+                      }}
+                    >
+                      <svg width="8" height="6" viewBox="0 0 8 6" fill="none" aria-hidden="true">
+                        <path d="M4 5.5L0.5 0.5H7.5L4 5.5Z" fill="currentColor"/>
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               </div>
-              {/* × separator visible on mobile between qty and price */}
+
+              {/* × separator — visible on mobile */}
               <span className="items-table__mul-label" aria-hidden="true">×</span>
-              <input
-                className="field__input amount"
-                inputMode="decimal"
-                placeholder="0.00"
-                title={t['invoice_price']}
-                value={itemDisplayValues[`price-${idx}`] ?? (item.unitPrice === 0 ? '' : String(item.unitPrice))}
-                onChange={(e) => handleAmountChange(idx, 'unitPrice', e.target.value)}
-                onBlur={() => handleAmountBlur(idx, 'unitPrice')}
-                onFocus={handleAmountFocus}
-              />
+
+              {/* Price: label + input wrapper */}
+              <div className="items-table__price-wrap">
+                <span className="items-table__price-label" aria-hidden="true">{t['invoice_price'] ?? 'price'}</span>
+                <input
+                  className="field__input amount"
+                  inputMode="decimal"
+                  placeholder="0.00"
+                  title={t['invoice_price']}
+                  value={itemDisplayValues[`price-${idx}`] ?? (item.unitPrice === 0 ? '' : String(item.unitPrice))}
+                  onChange={(e) => handleAmountChange(idx, 'unitPrice', e.target.value)}
+                  onBlur={() => handleAmountBlur(idx, 'unitPrice')}
+                  onFocus={handleAmountFocus}
+                />
+              </div>
+
+              {/* = sign before subtotal — visible on mobile */}
+              <span className="items-table__eq-label" aria-hidden="true">=</span>
+
               <span className="items-table__total amount">
                 {item.total.toFixed(2)}
               </span>
@@ -575,7 +596,14 @@ export function InvoiceForm({ initial, onDone }: InvoiceFormProps) {
         {/* Totals + Notes side by side on desktop */}
         <div className="invoice-form__bottom">
           <div className="invoice-form__notes">
-            <Input label={t['invoice_notes']} {...register('notes')} />
+            <label className="field__label" htmlFor="inv-notes">{t['invoice_notes']}</label>
+            <textarea
+              id="inv-notes"
+              className="invoice-form__notes-area"
+              placeholder={t['invoice_notes']}
+              rows={1}
+              {...register('notes')}
+            />
           </div>
 
           <div className="invoice-form__totals">

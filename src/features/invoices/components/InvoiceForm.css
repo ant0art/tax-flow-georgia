@@ -21,6 +21,7 @@
   border-top: 1px solid var(--color-border);
 }
 
+/* ── Section title ── */
 .invoice-form__section-title {
   font-size: 11px;
   font-weight: 600;
@@ -30,7 +31,14 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: var(--space-4);
+  margin: 0;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Standalone title (not wrapped in section-header) gets its own divider */
+.invoice-form__section-title:not(.invoice-form__section-header *) {
+  margin-bottom: var(--space-3);
   padding-bottom: var(--space-3);
   border-bottom: 1px solid var(--color-border);
 }
@@ -48,95 +56,88 @@
   border-top: 1px solid var(--color-border);
 }
 
-/* ── Meta row: Number · Date · Due date · Currency ── */
+/* ── Section header: title + inline Number input ── */
+.invoice-form__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Inline Number input: compact, muted, monospace — subtle border shows it's editable */
+.invoice-form__number-input {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  background: transparent;
+  /* Dashed primary border signals: editable field */
+  border: 1px dashed var(--color-primary);
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+  height: 22px;
+  min-width: 0;
+  max-width: 160px;
+  width: 100%;
+  text-align: right;
+  cursor: text;
+  transition: border-color var(--duration-fast), color var(--duration-fast),
+              background var(--duration-fast), border-style var(--duration-fast);
+  box-sizing: border-box;
+}
+.invoice-form__number-input:hover {
+  border-style: solid;
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+.invoice-form__number-input:focus {
+  outline: none;
+  border-style: solid;
+  border-color: var(--color-primary);
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
+
+/* ── Meta row: Date · Due date · Currency (Number moved to header) ── */
 .invoice-form__meta {
   display: grid;
-  grid-template-columns: 1fr;
+  /* Always 3 equal columns — dates get minmax to prevent truncation */
+  grid-template-columns: minmax(108px, 1fr) minmax(108px, 1fr) minmax(80px, 1fr);
   gap: var(--space-3);
 }
 
-/* 640–767px (md tier): 3-column meta — [Date | Due Date | Currency], Number hidden
-   At 640px: (640-40-24)/3 ≈ 192px per col → dates are fully readable */
-@media (min-width: 640px) and (max-width: 767px) {
+.invoice-form__meta > * {
+  min-width: 0;
+}
+
+.invoice-form__meta > * .field__input {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Compact gap on all non-mobile */
+@media (min-width: 480px) {
   .invoice-form__meta {
-    grid-template-columns: 1fr 1fr 1fr;
     gap: var(--space-2);
   }
-  /* Number is auto-generated — hide it at this width too */
-  .invoice-form__meta > *:first-child {
-    display: none;
-  }
-  .invoice-form__meta > * {
-    min-width: 0;
-  }
-  .invoice-form__meta > * .field__input {
-    min-width: 0;
-    width: 100%;
-  }
 }
 
-/* ≥768px (lg+): full 4-column meta — [Number | Date | Due Date | Currency]
-   At 768px: (768-40-36)/4.3 ≈ 161px per 1fr → dates are readable */
-@media (min-width: 768px) {
-  .invoice-form__meta {
-    grid-template-columns: 1.3fr 1fr 1fr 1fr;
-  }
-  /* Prevent input[type=date] browser min-width from causing overflow */
-  .invoice-form__meta > * {
-    min-width: 0;
-  }
-  .invoice-form__meta > * .field__input {
-    min-width: 0;
-    width: 100%;
-  }
-}
-
-/* Very narrow mobile (≤479px, e.g. iPhone SE 375px):
-   Stack dates vertically — each gets full width so no truncation possible */
+/* xs (≤479px): stack to 2-col [Date|Due] + Currency full-width below */
 @media (max-width: 479px) {
   .invoice-form__meta {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(108px, 1fr) minmax(108px, 1fr);
     gap: var(--space-2);
   }
-  .invoice-form__meta > * {
-    min-width: 0;
-  }
-  .invoice-form__meta > * .field__input {
-    min-width: 0;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  /* Number field — auto-generated, hide */
-  .invoice-form__meta > *:first-child {
-    display: none;
-  }
-}
-
-/* Medium mobile (480–639px): Date | Due Date side by side (~220px each) + Currency full-width */
-@media (min-width: 480px) and (max-width: 639px) {
-  .invoice-form__meta {
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-2);
-  }
-  .invoice-form__meta > * {
-    min-width: 0;
-  }
-  .invoice-form__meta > * .field__input {
-    min-width: 0;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  /* Number field — auto-generated, hide */
-  .invoice-form__meta > *:first-child {
-    display: none;
-  }
-  /* Currency spans full width below dates */
+  /* Currency: spans full width on second row */
   .invoice-form__meta > *:last-child {
     grid-column: 1 / -1;
   }
 }
 
-/* ── Client row: Client · Project · Entity ── */
+/* ── Client row: Client · Account · Project · Entity ── */
 .invoice-form__client {
   display: grid;
   grid-template-columns: 1fr;
@@ -145,10 +146,24 @@
 
 @media (min-width: 640px) {
   .invoice-form__client {
+    /* auto-fill: cols shrink/grow; Client anchored 2fr, rest equal */
     grid-template-columns: 2fr 1fr 1fr;
   }
   .invoice-form__client > * {
     min-width: 0;
+  }
+  /* Project: when AccountCombobox is null (only 2 grid children: Client + Project),
+     Project auto-places in col 2 (first 1fr). Span it through col 3 to fill
+     the remaining 2fr instead of sitting in just 1fr. */
+  .invoice-form__client > *:last-child {
+    grid-column: 2 / -1;
+  }
+  /* When AccountCombobox IS rendered (3+ children), Project is in col 3 — reset */
+  .invoice-form__client > *:nth-child(3):last-child {
+    grid-column: unset;
+  }
+  .invoice-form__client > *:nth-child(4):last-child {
+    grid-column: unset;
   }
 }
 
@@ -158,56 +173,104 @@
   flex-direction: column;
   gap: var(--space-2);
   margin-bottom: var(--space-3);
+  /* Spacing from SERVICES heading */
+  margin-top: var(--space-1);
 }
 
 .items-table__head {
   display: grid;
-  grid-template-columns: 5fr 70px 1fr 1fr 32px;
+  grid-template-columns: 5fr 68px 1.5ch minmax(90px, 1fr) 1.5ch auto 32px;
   gap: var(--space-2);
   font: var(--text-caption);
   color: var(--color-text-tertiary);
-  /* No horizontal padding — must match .items-table__row exactly */
 }
 
 /* Nudge labels to visually match input padding below */
-.items-table__head span:nth-child(1) { padding-left: var(--space-3);  }  /* Description — matches input's 12px padding-left */
-.items-table__head span:nth-child(2) { text-align: center; }              /* Qty — stepper is centered */
-.items-table__head span:nth-child(3) { padding-left: var(--space-3);  }  /* Price — matches input padding */
-.items-table__head span:nth-child(4) { text-align: right; padding-right: var(--space-2); }  /* Total — right-aligned */
+.items-table__head span:nth-child(1) { padding-left: var(--space-3); }            /* Description */
+.items-table__head span:nth-child(2) { text-align: center; }                      /* Qty */
+/* span:nth-child(3) = × column — empty */
+.items-table__head span:nth-child(4) { padding-left: var(--space-3); }            /* Price */
+/* span:nth-child(5) = = column — empty */
+.items-table__head span:nth-child(6) { text-align: right; padding-right: var(--space-2); } /* Total */
 
 .items-table__row {
   display: grid;
-  grid-template-columns: 5fr 70px 1fr 1fr 32px;
+  grid-template-columns: 5fr 68px 1.5ch minmax(90px, 1fr) 1.5ch auto 32px;
   gap: var(--space-2);
-  align-items: start;   /* let description textarea grow freely */
+  align-items: center;  /* values at the same center line */
 }
 
-/* Force all grid children to respect fr column widths (overrides browser input min-width) */
+/* Force all grid children to respect column widths */
 .items-table__row > * {
   min-width: 0;
 }
 
-.items-table__row > .field__input,
-.items-table__row > .qty-stepper {
+/* Spacer is mobile-only — hidden in desktop grid */
+.items-table__formula-spacer {
+  display: none;
+}
+
+/* × and = separators: visible on both desktop and mobile */
+.items-table__mul-label,
+.items-table__eq-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  user-select: none;
+  pointer-events: none;
+}
+
+/* qty-wrap and price-wrap as grid cells on desktop */
+.items-table__qty-wrap,
+.items-table__price-wrap {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* QTY/Price labels: hidden on desktop (head row has them), shown on mobile */
+.items-table__qty-label,
+.items-table__price-label {
+  display: none;
+}
+
+/* Stepper and price input fill their wrapper column on desktop */
+.items-table__qty-wrap .qty-stepper,
+.items-table__price-wrap .field__input {
+  width: 100%;
+  min-width: 0;  /* prevent browser default min-width from overflowing grid column */
+  box-sizing: border-box;
 }
 
 /* ── Multiline description textarea ── */
 .items-table__desc {
   width: 100%;
-  min-height: 52px;
+  /* Mobile: 1 line (~32px), same height as other fields */
+  min-height: 32px;
+  height: 32px;
   padding: 6px var(--space-3);
   background: var(--color-surface-inset);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   font: var(--text-body);
   color: var(--color-text);
-  resize: vertical;            /* allow user to resize if needed */
-  overflow: hidden;            /* hide scrollbar — content scrolls via field-sizing */
-  field-sizing: content;       /* auto-grow as user types (Chrome 123+, Firefox 129+) */
+  resize: vertical;
+  overflow: hidden;
+  field-sizing: content;
   box-sizing: border-box;
   transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
   line-height: 1.4;
+}
+
+/* ≥640px: grow to 2 lines */
+@media (min-width: 640px) {
+  .items-table__desc {
+    min-height: 52px;
+    height: auto;
+  }
 }
 
 .items-table__desc::placeholder {
@@ -319,14 +382,50 @@
   pointer-events: none;
 }
 
-/* × mul-label: hidden on desktop (header row provides context), visible only on mobile */
-.items-table__mul-label {
-  display: none;
-}
-
 /* qty label: hidden on desktop, shown on mobile only */
 .items-table__qty-label {
   display: none;
+}
+
+/* price label: hidden on desktop */
+.items-table__price-label {
+  display: none;
+}
+
+/* ── Notes textarea ── */
+.invoice-form__notes-area {
+  width: 100%;
+  /* Mobile: 1 row */
+  min-height: 32px;
+  height: 32px;
+  padding: 6px var(--space-3);
+  background: var(--color-surface-inset);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font: var(--text-body);
+  color: var(--color-text);
+  resize: vertical;
+  overflow: hidden;
+  field-sizing: content;
+  box-sizing: border-box;
+  transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
+  line-height: 1.4;
+}
+.invoice-form__notes-area::placeholder {
+  color: var(--color-text-tertiary);
+}
+.invoice-form__notes-area:focus {
+  outline: none;
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px rgba(75, 96, 127, 0.15);
+}
+
+/* ≥640px: 2 rows */
+@media (min-width: 640px) {
+  .invoice-form__notes-area {
+    min-height: 52px;
+    height: auto;
+  }
 }
 
 /* ── Bottom area: Notes (left) + Totals (right) ── */
@@ -421,6 +520,8 @@
 /* Checkbox lives directly inside invoice-form, outside any section — give it horizontal rhythm */
 .invoice-form > .create-linked {
   margin: var(--space-4) var(--space-5);
+  /* Right-align so it sits visually under the Subtotal/Totals panel */
+  align-self: flex-end;
 }
 
 /* ── Actions ── */
@@ -457,14 +558,20 @@
 
 /* ── Mobile: compact single-screen form layout ── */
 @media (max-width: 639px) {
-  /* Tighter padding throughout — every px counts for single-screen goal */
+  /* Tighter padding throughout */
   .invoice-form__section {
     padding: var(--space-2) var(--space-3);
   }
-  .invoice-form__section-title {
+  .invoice-form__section-header {
     margin-bottom: var(--space-2);
     padding-bottom: var(--space-2);
+  }
+  .invoice-form__section-title {
     font-size: 10px;
+  }
+  .invoice-form__section-title:not(.invoice-form__section-header *) {
+    margin-bottom: var(--space-2);
+    padding-bottom: var(--space-2);
   }
   .invoice-form__field-group {
     gap: var(--space-2);
@@ -486,94 +593,171 @@
     display: none;
   }
 
-  /* Items section gap */
+  /* Items section: a bit more gap from the SERVICES heading */
   .items-table {
     gap: var(--space-2);
     margin-bottom: var(--space-2);
+    margin-top: var(--space-3);
   }
 
-  /* Each item row: flex-wrap card */
+  /* Each item row: flex-wrap card with remove button pinned top-right */
   .items-table__row {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    align-items: flex-end;
     gap: var(--space-2);
-    padding: var(--space-2) var(--space-2);
+    padding: var(--space-2);
+    padding-top: 36px;  /* more room so remove button doesn't crowd description */
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     background: var(--color-surface-inset);
+    position: relative;
   }
 
-  /* Description: full-width first line.
-     Distinct via slightly lighter background — NO border-left accent (per user request) */
+  /* Remove button: top-right corner of the card */
+  .items-table__remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    order: unset;
+    align-self: unset;
+  }
+
+  /* Description: full-width */
   .items-table__desc {
     flex: 1 1 100%;
     order: 0;
     background: var(--color-surface);
     border-color: var(--color-border-focus);
+    height: 32px;
+    min-height: 32px;
   }
 
-  /* Qty label span: visible as micro-label above the stepper */
+  /* ── Formula row: [QtyLabel+Stepper] × [PriceLabel+Input] = [Total] [✕] ── */
+  /* Push entire formula group to the right */
+  .items-table__formula-group {
+    display: contents; /* let children participate in flex directly */
+  }
+
+  /* Spacer: pushes all formula elements to the right */
+  .items-table__formula-spacer {
+    flex: 1;
+    order: 1;
+    min-width: 0;
+  }
+
+  /* QTY label+stepper wrapper */
+  .items-table__qty-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    order: 2;
+    gap: 2px;
+    flex: 0 0 auto; /* don't stretch — width follows stepper */
+    width: auto;
+  }
+
+  /* Qty label: small caps above stepper */
   .items-table__qty-label {
     display: block;
-    order: 1;
-    flex: 0 0 72px;             /* same width as qty-stepper below it */
     font-size: 9px;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--color-text-tertiary);
     text-align: center;
-    margin-bottom: -6px;        /* pull stepper up so gap isn't too large */
     pointer-events: none;
     user-select: none;
+    line-height: 1;
   }
 
-  /* Qty stepper: 72px */
+  /* Qty stepper: wide enough for 3-digit quantities */
   .qty-stepper {
-    flex: 0 0 72px;
-    order: 2;
+    flex: none;
+    width: 62px;
+    height: 32px;
+    order: unset;
   }
 
-  /* × separator label: make visible on mobile */
+  /* × separator */
   .items-table__mul-label {
     display: block;
     order: 3;
     font-size: 11px;
     color: var(--color-text-tertiary);
     padding: 0 1px;
-    align-self: center;
+    align-self: flex-end;
+    padding-bottom: 7px;  /* vertically center relative to 32px input */
     flex-shrink: 0;
   }
 
-  /* Price input: ensure it looks like an editable field with explicit styling */
-  .items-table__row > .field__input {
-    flex: 0 0 88px;
+  /* Price label+input wrapper */
+  .items-table__price-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     order: 4;
+    gap: 2px;
+    flex: 0 0 auto; /* don't stretch — width follows input */
+    width: auto;
+  }
+
+  /* Price label */
+  .items-table__price-label {
+    display: block;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-tertiary);
+    text-align: center;
+    pointer-events: none;
+    user-select: none;
+    line-height: 1;
+  }
+
+  /* Price input: wide enough for ~8 digits + 2 decimal = "12345.67" */
+  .items-table__price-wrap .field__input {
+    width: 100px;
+    flex: none;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
     padding: 0 var(--space-2);
     height: 32px;
+    box-sizing: border-box;
   }
 
-  /* Line total: right-aligned, bold */
-  .items-table__total {
-    flex: 1;
+  /* = sign before subtotal */
+  .items-table__eq-label {
+    display: block;
     order: 5;
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+    align-self: flex-end;
+    padding-bottom: 7px;
+    flex-shrink: 0;
+  }
+
+  /* Line total */
+  .items-table__total {
+    order: 6;
+    align-self: flex-end;
     font-size: 13px;
     font-weight: 700;
     color: var(--color-primary);
     text-align: right;
-    padding-right: var(--space-1);
+    padding-right: 0;
+    padding-bottom: 7px;
+    flex-shrink: 0;
   }
 
-  /* Remove button */
+  /* Remove button — overridden above to position: absolute, but keep fallback */
   .items-table__remove {
     flex: 0 0 auto;
-    order: 6;
+    order: 7;
+    align-self: flex-end;
   }
 
-  /* Bottom: no notes on mobile, totals right-aligned compact block */
+  /* Notes visible on mobile */
   .invoice-form__bottom {
     flex-direction: column;
     gap: var(--space-2);
@@ -581,13 +765,13 @@
     padding-top: var(--space-2);
   }
   .invoice-form__notes {
-    display: none;
+    display: block;
   }
-  /* Totals: right-aligned compact block, not full-width */
+  /* Totals: right-aligned compact block */
   .invoice-form__totals {
     width: auto;
     min-width: 200px;
-    max-width: 100%; /* don't overflow */
+    max-width: 100%;
     margin-left: auto;
     padding: var(--space-2) var(--space-3);
   }
@@ -595,14 +779,12 @@
     font-size: 12px;
     gap: var(--space-2);
   }
-  /* VAT row: allow wrapping so select + input don't overflow */
   .invoice-form__total-row--editable {
     flex-wrap: wrap;
   }
   .invoice-form__vat-label {
     flex-shrink: 0;
   }
-  /* VAT select: compact */
   .invoice-form__vat-label select,
   .invoice-form__total-row--editable select {
     max-width: 110px;
@@ -612,28 +794,12 @@
   }
 }
 
-/* ── Extra-narrow (xs tier, ≤479px): simplify items row ── */
+/* ── Extra-narrow (xs tier, ≤479px): tighten formula ── */
 @media (max-width: 479px) {
-  /* Hide QTY label — reduces clutter, saves vertical space */
-  .items-table__qty-label {
-    display: none;
-  }
-  /* Hide × separator — Price follows stepper without label */
-  .items-table__mul-label {
-    display: none;
-  }
-  /* Stepper: narrower */
   .qty-stepper {
-    flex: 0 0 60px;
+    width: 56px;
   }
-  /* Price: grows to fill remaining space */
-  .items-table__row > .field__input {
-    flex: 1 1 60px;
-    min-width: 0;
-  }
-  /* Total: squeeze */
-  .items-table__total {
-    flex: 0 0 auto;
-    min-width: 0;
+  .items-table__price-wrap .field__input {
+    width: 88px;
   }
 }

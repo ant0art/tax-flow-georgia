@@ -283,4 +283,12 @@
   .datepicker--compact .datepicker__toggle {
     width: 24px;
   }
+
+  /* Non-compact datepicker: shrink toggle to give more room for date text */
+  .datepicker:not(.datepicker--compact) .datepicker__toggle {
+    width: 28px;
+  }
+  .datepicker:not(.datepicker--compact) .datepicker__input-wrap .field__input {
+    font-size: 13px;
+  }
 }

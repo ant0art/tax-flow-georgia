@@ -361,6 +361,7 @@ export function TransactionForm({ onDone, initial, rowIndex }: Props) {
         <Icon name="dollar-sign" size={16} />
         {isEdit ? t['transaction_edit'] ?? 'Edit transaction' : t['transaction_new']}
       </h3>
+      <hr className="transaction-form__divider" />
 
       {/* Link to invoice */}
       <div className="field">
@@ -421,7 +422,7 @@ export function TransactionForm({ onDone, initial, rowIndex }: Props) {
       </div>
 
       {/* Row 2: Amounts — outer 2fr|1fr mirrors description row */}
-      <div className="transaction-form__grid transaction-form__grid--desc">
+      <div className="transaction-form__grid transaction-form__grid--desc transaction-form__grid--amounts">
         {/* Left: Amount + Currency + NBG Rate */}
         <div className="transaction-form__amounts-inner">
           <FieldStepper
