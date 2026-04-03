@@ -94,6 +94,7 @@ export function LoginPage() {
         <p className="login-card__disclaimer">
           {t['login_disclaimer']}
         </p>
+        <a className="login-card__privacy" href="#/privacy">Privacy Policy</a>
       </div>
     </div>
   );

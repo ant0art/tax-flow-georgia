@@ -8,6 +8,7 @@ import { TransactionsPage } from '@/pages/transactions/TransactionsPage';
 import { ClientsPage } from '@/pages/clients/ClientsPage';
 import { SettingsPage } from '@/pages/settings/SettingsPage';
 import { DeclarationsPage } from '@/pages/declarations/DeclarationsPage';
+import { PrivacyPage } from '@/pages/privacy/PrivacyPage';
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.accessToken);
@@ -20,6 +21,7 @@ export function AppRouter() {
     <HashRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
         <Route
           element={
             <AuthGuard>

@@ -94,3 +94,15 @@
   margin-top: var(--space-6);
   line-height: 1.6;
 }
+
+.login-card__privacy {
+  display: inline-block;
+  font: var(--text-small);
+  color: var(--color-text-tertiary);
+  margin-top: var(--space-3);
+  text-decoration: none;
+  transition: color var(--duration-fast);
+}
+.login-card__privacy:hover {
+  color: var(--color-accent);
+}
