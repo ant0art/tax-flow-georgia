@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon, type IconName } from '@/shared/ui/Icon';
 import {
@@ -60,6 +60,17 @@ export function Dashboard() {
   const now = new Date();
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
   const [draggingId, setDraggingId] = useState<WidgetId | null>(null);
+
+  // Defer chart render until container has real dimensions
+  const [chartMounted, setChartMounted] = useState(false);
+  const chartBodyRef = useRef<HTMLDivElement | null>(null);
+  const chartRefCb = useCallback((node: HTMLDivElement | null) => {
+    chartBodyRef.current = node;
+    if (node && !chartMounted) {
+      // Wait one frame so the browser has computed layout
+      requestAnimationFrame(() => setChartMounted(true));
+    }
+  }, [chartMounted]);
 
   const { layout, reorder, resize, toggleLock, resetLayout } = useDashboardLayout();
 
@@ -169,8 +180,8 @@ export function Dashboard() {
                     {t['dashboard_no_data'].replace('{year}', String(selectedYear))}
                   </div>
                 ) : (
-                  <div className="dashboard__chart__body">
-                    <ResponsiveContainer width="100%" height="100%">
+                  <div className="dashboard__chart__body" ref={chartRefCb}>
+                    {chartMounted && <ResponsiveContainer width="100%" height={300}>
                       <BarChart data={monthlyData} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                         <XAxis dataKey="name" tick={{ fill: 'var(--color-text-secondary)', fontSize: 12 }} axisLine={{ stroke: 'var(--color-border)' }} />
@@ -183,7 +194,7 @@ export function Dashboard() {
                         </Bar>
                         <Bar dataKey="tax" radius={[4, 4, 0, 0]} fill="var(--color-warning)" opacity={0.6} />
                       </BarChart>
-                    </ResponsiveContainer>
+                    </ResponsiveContainer>}
                   </div>
                 )}
               </div>

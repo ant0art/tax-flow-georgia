@@ -5,6 +5,7 @@ import { initUserSpreadsheet } from '@/features/auth/lib/initSpreadsheet';
 import { useUIStore } from '@/shared/hooks/useTheme';
 import { useT } from '@/shared/i18n/useT';
 import { Icon } from '@/shared/ui/Icon';
+import { isMobile } from '@/shared/lib/device';
 import './LoginPage.css';
 
 export function LoginPage() {
@@ -14,6 +15,7 @@ export function LoginPage() {
   const navigate = useNavigate();
   const t = useT();
   const { lang, toggleLang } = useUIStore();
+  const mobile = isMobile();
 
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -50,6 +52,12 @@ export function LoginPage() {
       'https://www.googleapis.com/auth/spreadsheets',
       'https://www.googleapis.com/auth/drive.file',
     ].join(' '),
+    // Mobile: use redirect flow instead of popup.
+    // Popup opens a new tab on mobile Safari and doesn't return focus.
+    ...(mobile && {
+      ux_mode: 'redirect' as const,
+      redirect_uri: window.location.origin + import.meta.env.BASE_URL,
+    }),
   });
 
   return (

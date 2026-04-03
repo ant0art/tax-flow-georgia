@@ -179,8 +179,9 @@
 }
 
 .dashboard__chart__body {
-  flex: 1;
-  min-height: 200px; /* crucial: allows flex child to shrink below content size, but never below 200px, so it's visible when 1-col on mobile */
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
 }
 
 .dashboard__chart .section-title {

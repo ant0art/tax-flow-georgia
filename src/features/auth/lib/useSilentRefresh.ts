@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuthStore } from '@/features/auth/store';
+import { isMobile } from '@/shared/lib/device';
 
 const REFRESH_INTERVAL_MS = 45 * 60 * 1000; // 45 min — token valid for ~60 min
 
@@ -12,6 +13,7 @@ const REFRESH_INTERVAL_MS = 45 * 60 * 1000; // 45 min — token valid for ~60 mi
  * no silent OAuth flow is needed on mount. See D-003 in dev-journal.
  */
 export function useSilentRefresh() {
+  const mobile = isMobile();
   const token = useAuthStore((s) => s.accessToken);
   const setToken = useAuthStore((s) => s.setToken);
 
@@ -30,7 +32,7 @@ export function useSilentRefresh() {
   });
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || mobile) return;
     const timer = setInterval(() => {
       refreshToken();
     }, REFRESH_INTERVAL_MS);
