@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Environment variables (contains API keys!)
+.env
+.env.local
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -34,6 +38,9 @@ dist-ssr
 
 # Internal documentation
 docs/
+
+# Declaration proxy (private repo: tax-flow-georgia-decl)
+cloudflare-worker/
 
 # GitHub Actions (uncomment to exclude)
 # .github/

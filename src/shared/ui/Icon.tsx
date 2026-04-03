@@ -48,7 +48,12 @@ export type IconName =
   | 'unlock'
   | 'columns-1'
   | 'columns-2'
-  | 'check';
+  | 'check'
+  | 'file-check'
+  | 'credit-card'
+  | 'upload-cloud'
+  | 'refresh-cw'
+  | 'link-2';
 
 const PATHS: Record<IconName, ReactElement> = {
   'chart-bar': (
@@ -332,6 +337,40 @@ const PATHS: Record<IconName, ReactElement> = {
   ),
   'check': (
     <polyline points="20 6 9 17 4 12" />
+  ),
+  'file-check': (
+    <>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" />
+      <polyline points="14 2 14 8 20 8" />
+      <polyline points="9 15 11 17 15 13" />
+    </>
+  ),
+  'credit-card': (
+    <>
+      <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+      <line x1="1" y1="10" x2="23" y2="10" />
+    </>
+  ),
+  'upload-cloud': (
+    <>
+      <polyline points="16 16 12 12 8 16" />
+      <line x1="12" y1="12" x2="12" y2="21" />
+      <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" />
+      <polyline points="16 16 12 12 8 16" />
+    </>
+  ),
+  'refresh-cw': (
+    <>
+      <polyline points="23 4 23 10 17 10" />
+      <polyline points="1 20 1 14 7 14" />
+      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+    </>
+  ),
+  'link-2': (
+    <>
+      <path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3" />
+      <line x1="8" y1="12" x2="16" y2="12" />
+    </>
   ),
 };
 

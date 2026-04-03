@@ -29,10 +29,14 @@ jobs:
       - run: npx tsc --noEmit
         env:
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+          VITE_RSGE_WORKER_URL: ${{ secrets.VITE_RSGE_WORKER_URL }}
+          VITE_RSGE_API_KEY: ${{ secrets.VITE_RSGE_API_KEY }}
 
       - run: npx vite build
         env:
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+          VITE_RSGE_WORKER_URL: ${{ secrets.VITE_RSGE_WORKER_URL }}
+          VITE_RSGE_API_KEY: ${{ secrets.VITE_RSGE_API_KEY }}
 
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -169,9 +169,12 @@ This is a one-time setup to obtain a Google OAuth Client ID.
    ```
 8. Fill in the **Authorized redirect URIs**:
    ```
-   http://localhost:5173
+   http://localhost:5173/tax-flow-georgia/
    https://<your-github-username>.github.io/tax-flow-georgia/
    ```
+   > **Note:** These redirect URIs are required for mobile authentication.
+   > On mobile devices, the app uses OAuth redirect flow instead of popup.
+   > The URI must exactly match your deployment URL (including the trailing slash).
 9. Click **Create** and copy the generated **Client ID**
 
 > ⚠️ **Important:** The OAuth consent screen must be configured. For personal use, adding yourself as a test user is sufficient — no need to go through verification.
@@ -457,7 +460,9 @@ Go to **Repository → Settings → Secrets and variables → Actions → New re
 | Aspect | Implementation |
 |---|---|
 | **Token storage** | Access token is stored in **sessionStorage** — cleared when the tab closes, never persisted to disk |
-| **OAuth scopes** | Minimal: `https://www.googleapis.com/auth/spreadsheets` + `drive.file` (only files created by this app) |
+| **OAuth scopes** | Minimal: `spreadsheets` + `drive.file` (only files created by this app) |
+| **Mobile auth** | On mobile devices, OAuth uses redirect flow instead of popup for better UX. Token is intercepted before the app mounts |
+| **Session expiry** | If the token expires (~60 min), the app automatically logs out and redirects to login |
 | **Content Security Policy** | Configured in `index.html` to restrict resource origins |
 | **No backend** | No server processes or stores your data — everything stays in your Google account |
 | **No analytics** | No tracking, telemetry, or third-party scripts |
@@ -489,6 +494,7 @@ Exchange rates source: [nbg.gov.ge](https://nbg.gov.ge)
 | **Rate limits** | Google Sheets API has a quota of 60 requests/min. The app uses batch reads to stay well within limits |
 | **No offline write** | You need an internet connection to save data. Forms auto-save as drafts locally while offline |
 | **GitHub Pages hosting** | The app must be deployed under a subpath (`/tax-flow-georgia/`). Changing the base path requires updating `vite.config.ts` and Google OAuth origins |
+| **Mobile session** | On mobile, silent token refresh is not supported. Sessions expire after ~60 minutes, requiring re-authentication |
 
 ---
 

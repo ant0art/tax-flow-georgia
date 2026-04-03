@@ -2,8 +2,23 @@ const SHEETS_API = 'https://sheets.googleapis.com/v4/spreadsheets';
 
 type GetToken = () => string | null;
 
+/** Extract human-readable error from Google API response */
+async function sheetsError(prefix: string, res: Response): Promise<Error> {
+  try {
+    const body = await res.json();
+    const msg = body?.error?.message ?? JSON.stringify(body).slice(0, 200);
+    console.error(`[SheetsClient] ${prefix}:`, res.status, msg);
+    return new Error(`${prefix}: ${res.status} — ${msg}`);
+  } catch {
+    return new Error(`${prefix}: ${res.status}`);
+  }
+}
+
 export class SheetsClient {
-  constructor(private getToken: GetToken) {}
+  private getToken: GetToken;
+  constructor(getToken: GetToken) {
+    this.getToken = getToken;
+  }
 
   private get headers() {
     const token = this.getToken();
@@ -27,7 +42,7 @@ export class SheetsClient {
       { headers: this.headers }
     );
     if (res.status === 401) throw new AuthError();
-    if (!res.ok) throw new Error(`Sheets API error: ${res.status}`);
+    if (!res.ok) throw await sheetsError('getSheet', res);
     const data = await res.json();
     return data.values ?? [];
   }
@@ -43,7 +58,7 @@ export class SheetsClient {
       }
     );
     if (res.status === 401) throw new AuthError();
-    if (!res.ok) throw new Error(`Append failed: ${res.status}`);
+    if (!res.ok) throw await sheetsError('appendRow', res);
   }
 
   /** Update a specific row (1-indexed, row 1 = headers) */
@@ -58,7 +73,7 @@ export class SheetsClient {
       }
     );
     if (res.status === 401) throw new AuthError();
-    if (!res.ok) throw new Error(`Update failed: ${res.status}`);
+    if (!res.ok) throw await sheetsError('updateRow', res);
   }
 
   /** Delete a row by index (1-indexed) */
@@ -68,6 +83,7 @@ export class SheetsClient {
       `${SHEETS_API}/${this.spreadsheetId}?fields=sheets.properties`,
       { headers: this.headers }
     );
+    if (!metaRes.ok) throw await sheetsError('deleteRow.meta', metaRes);
     const meta = await metaRes.json();
     const sheetMeta = meta.sheets?.find(
       (s: { properties: { title: string } }) => s.properties.title === sheet
@@ -93,7 +109,7 @@ export class SheetsClient {
         }),
       }
     );
-    if (!res.ok) throw new Error(`Delete failed: ${res.status}`);
+    if (!res.ok) throw await sheetsError('deleteRow', res);
   }
 
   /** Batch read multiple ranges */
@@ -104,7 +120,7 @@ export class SheetsClient {
       { headers: this.headers }
     );
     if (res.status === 401) throw new AuthError();
-    if (!res.ok) throw new Error(`BatchRead failed: ${res.status}`);
+    if (!res.ok) throw await sheetsError('batchRead', res);
     const data = await res.json();
     return (data.valueRanges ?? []).map(
       (vr: { values?: string[][] }) => vr.values ?? []

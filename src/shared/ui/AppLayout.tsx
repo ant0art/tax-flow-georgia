@@ -61,6 +61,10 @@ export function AppLayout() {
           <Icon name="users" size={18} />
           {!collapsed && <span className="app-nav__label">{t['nav_clients']}</span>}
         </NavLink>
+        <NavLink to="/declarations" className="app-nav__item" title={t['nav_declarations']}>
+          <Icon name="file-check" size={18} />
+          {!collapsed && <span className="app-nav__label">{t['nav_declarations']}</span>}
+        </NavLink>
         <NavLink to="/settings" className="app-nav__item" title={t['nav_settings']}>
           <Icon name="settings" size={18} />
           {!collapsed && <span className="app-nav__label">{t['nav_settings']}</span>}
