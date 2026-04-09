@@ -186,6 +186,12 @@ export function useRsgeSync(tempToken: string | null): UseRsgeSyncReturn {
           rsgeDocNum: '',
           rsgeSyncState: 'unlinked',
           rsgeSyncedHash: '',
+          // Clear all RS.GE snapshot fields to fully reset the local declaration
+          rsgeImportedAt: '',
+          rsgeIncome: 0,
+          rsgeTax: 0,
+          rsgeCumulativeIncome: 0,
+          rsgeStatusText: '',
         },
         rowIndex,
       });

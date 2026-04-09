@@ -5,11 +5,16 @@ import type { RsgeDeclaration } from '@/shared/api/rsge-client';
 export function getImportStatus(
   rsge: RsgeDeclaration,
   localDeclarations?: Declaration[],
-): 'linked' | 'mismatch' | 'importable' {
+): 'linked' | 'mismatch' | 'importable' | 'stale' {
   if (!localDeclarations || localDeclarations.length === 0) return 'importable';
   const localPeriod = periodFromRsge(rsge.period || rsge.SAG_PERIODI);
   const match = localDeclarations.find((d) => d.period === localPeriod);
   if (!match) return 'importable';
+
+  // SEQ_NUM mismatch → local is linked to a different/deleted RS.GE declaration
+  const rsgeSeq = String(rsge.SEQ_NUM || '');
+  if (match.rsgeSeqNum && rsgeSeq && match.rsgeSeqNum !== rsgeSeq) return 'stale';
+
   if (match.rsgeSyncState === 'out_of_sync') return 'mismatch';
   if (match.rsgeImportedAt || match.rsgeSyncState === 'linked') return 'linked';
   return 'importable';
@@ -74,7 +79,29 @@ export function isRsgeSynced(decl: Declaration): boolean {
   return !!decl.rsgeImportedAt && decl.rsgeSyncState !== 'unlinked';
 }
 
+/**
+ * Map RS.GE status to local declaration status.
+ *
+ * STATUS numeric codes are unreliable (RS.GE sometimes returns STATUS=1
+ * even for submitted declarations). We also check STATUS_TXT which
+ * contains authoritative Georgian text:
+ *   - "გაგზავნილი" / "გადაგზავნილი" → sent/submitted
+ *   - "დადასტურებული" → confirmed
+ *   - "უარყოფილი" → rejected
+ */
+export function rsgeStatusToLocal(rsge: RsgeDeclaration): Declaration['localStatus'] {
+  const status = rsge.STATUS;
+  const txt = (rsge.STATUS_TXT || '').toLowerCase();
 
+  // Check Georgian text first (more reliable than numeric code)
+  if (txt.includes('გაგზავნ') || txt.includes('გადაგზავნ') || txt.includes('დადასტურ')) {
+    return 'submitted';
+  }
+
+  // Fallback to numeric code
+  if (status === 2 || status === 3) return 'submitted';
+  return 'draft';
+}
 
 /**
  * Convert local period format to RS.GE format.

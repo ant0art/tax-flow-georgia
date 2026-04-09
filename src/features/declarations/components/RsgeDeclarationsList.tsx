@@ -115,6 +115,15 @@ export function RsgeDeclarationsList({
             <Icon name="chevron-right" size={14} />
           </button>
         </div>
+        {state === 'done' && (
+          <button
+            className="rsge-year-btn"
+            onClick={onRefetch}
+            title={t['rsge_refresh'] || 'Refresh'}
+          >
+            <Icon name="refresh-cw" size={14} />
+          </button>
+        )}
 
         {/* Import All — compact inline */}
         {state === 'done' && declarations.length > 0 && onImportAll && (
@@ -206,6 +215,12 @@ export function RsgeDeclarationsList({
                         {t['rsge_mismatch_title']}
                       </span>
                     )}
+                    {importStatus === 'stale' && (
+                      <span className="rsge-card__import-status rsge-card__import-status--stale">
+                        <Icon name="alert-triangle" size={12} />
+                        {t['rsge_stale_link']}
+                      </span>
+                    )}
                   </div>
                   {/* Row 4: Actions */}
                   <div className="rsge-card__actions">
@@ -226,6 +241,18 @@ export function RsgeDeclarationsList({
                         <Icon name="link-2" size={10} />
                         RS.GE
                       </span>
+                    )}
+                    {importStatus === 'stale' && onImportSingle && (
+                      <button
+                        type="button"
+                        className="rsge-card__action rsge-card__action--relink"
+                        onClick={() => onImportSingle(decl)}
+                        disabled={isImporting}
+                        title={t['rsge_relink']}
+                      >
+                        <Icon name="refresh-cw" size={12} />
+                        <span>{t['rsge_relink']}</span>
+                      </button>
                     )}
                     {importStatus === 'mismatch' && onImportSingle && (
                       <button

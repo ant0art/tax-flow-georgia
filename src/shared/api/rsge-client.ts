@@ -182,11 +182,13 @@ export async function rsgeDraftSave(
   tempToken: string,
   seqNum: number,
   fields: DraftFields,
+  autoFill = false,
 ): Promise<RsgeDraftSaveResponse> {
   return workerFetch<RsgeDraftSaveResponse>('/draft/save', {
     temp_token: tempToken,
     seq_num: seqNum,
     fields,
+    auto_fill: autoFill,
   });
 }
 
@@ -224,3 +226,38 @@ export async function rsgeDraftList(
     ...(year ? { year } : {}),
   });
 }
+
+// ─── Submit Types & Function ────────────────────────────────────────────────
+
+export interface RsgeDraftSubmitResponse {
+  ok: boolean;
+  seq_num: number;
+  period: string;
+  status: 'submitted' | 'unknown';
+  registration_num: string;
+  submitted_at: string;
+  tax_amount: string;
+  steps: string[];
+  error?: string;
+  message?: string;
+  completed_steps?: string[];
+}
+
+/**
+ * Submit (file) a saved RS.GE draft declaration.
+ *
+ * ⚠️ IRREVERSIBLE — creates a legal tax document.
+ * The draft must already exist and be saved with correct data.
+ */
+export async function rsgeDraftSubmit(
+  tempToken: string,
+  seqNum: number,
+  period: string, // YYYYMM
+): Promise<RsgeDraftSubmitResponse> {
+  return workerFetch<RsgeDraftSubmitResponse>('/draft/submit', {
+    temp_token: tempToken,
+    seq_num: seqNum,
+    period,
+  });
+}
+

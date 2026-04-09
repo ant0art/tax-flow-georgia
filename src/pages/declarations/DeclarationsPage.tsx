@@ -143,10 +143,12 @@ export function DeclarationsPage() {
     setImportSingleId(cardId);
     try {
       await rsgeImport.importAll([decl]);
+      // Refresh RS.GE list to reflect new link state & remove deleted drafts
+      rsgeDecl.refetch();
     } finally {
       setImportSingleId(null);
     }
-  }, [rsgeImport]);
+  }, [rsgeImport, rsgeDecl]);
 
   // ── RS.GE total tax for toggle header ──
   const rsgeTotalTax = useMemo(
@@ -156,7 +158,10 @@ export function DeclarationsPage() {
 
   // ── Count importable RS.GE declarations ──
   const rsgeImportableCount = useMemo(
-    () => rsgeDecl.declarations.filter((d) => getImportStatus(d, declarations) === 'importable').length,
+    () => rsgeDecl.declarations.filter((d) => {
+      const s = getImportStatus(d, declarations);
+      return s === 'importable' || s === 'stale';
+    }).length,
     [rsgeDecl.declarations, declarations],
   );
 
@@ -239,6 +244,7 @@ export function DeclarationsPage() {
         onClose={handleCloseWizard}
         editDeclaration={editDecl ?? undefined}
         editRowIndex={editRowIndex}
+        rsgeTempToken={rsgeAuth.tempToken}
       />
     );
   }
@@ -308,6 +314,9 @@ export function DeclarationsPage() {
                 rsgeImport.lastResult && !rsgeImport.importing ? (
                   <span className="rsge-import-bar__result">
                     ✓ {rsgeImport.lastResult.imported} / 🔗 {rsgeImport.lastResult.linked}
+                    {rsgeImport.lastResult.relinked > 0 && (
+                      <span> 🔄 {rsgeImport.lastResult.relinked}</span>
+                    )}
                     {rsgeImport.lastResult.mismatched > 0 && (
                       <span className="rsge-import-bar__mismatch">
                         ⚠ {rsgeImport.lastResult.mismatched}

@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Button } from '@/shared/ui/Button';
 import { Icon } from '@/shared/ui/Icon';
 import { useT } from '@/shared/i18n/useT';
+import { rsgeDraftSubmit } from '@/shared/api/rsge-client';
+import type { RsgeDraftSubmitResponse } from '@/shared/api/rsge-client';
 import type { DeclarationCalcState } from '@/features/declarations/hooks/useDeclarationCalc';
 import type { DeclarationLocalStatus, Declaration } from '@/entities/declaration/schemas';
 
@@ -11,18 +13,40 @@ interface Props {
   onBack: () => void;
   /** The declaration being edited (for sync state checks) */
   editDeclaration?: Declaration;
+  /** RS.GE temp token — null if not connected */
+  rsgeTempToken: string | null;
 }
 
 const ESERVICES_URL = 'https://eservices.rs.ge';
 
-export function DeclarationStep3({ calc, onSubmit, onBack, editDeclaration }: Props) {
+/** Map step names from server → i18n keys */
+const STEP_LABELS: Record<string, string> = {
+  loading: 'rsge_submit_step_loading',
+  access_check: 'rsge_submit_step_access',
+  pre_validation: 'rsge_submit_step_validation',
+  recalculating: 'rsge_submit_step_recalc',
+  submitting: 'rsge_submit_step_submit',
+  confirming: 'rsge_submit_step_confirm',
+  finalizing: 'rsge_submit_step_finalize',
+  verifying: 'rsge_submit_step_verify',
+};
+
+export function DeclarationStep3({ calc, onSubmit, onBack, editDeclaration, rsgeTempToken }: Props) {
   const t = useT();
   const { period, fields, notes, setNotes, isEditMode, submittedAt } = calc;
   const [saving, setSaving] = useState(false);
 
-  // Check if the declaration is synced with RS.GE
+  // RS.GE submit states
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [submitProgress, setSubmitProgress] = useState<string | null>(null);
+  const [submitResult, setSubmitResult] = useState<RsgeDraftSubmitResponse | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Check if the declaration is synced with RS.GE (has a draft saved)
   const isSyncedFromRsge = !!editDeclaration?.rsgeImportedAt && editDeclaration?.rsgeSyncState !== 'unlinked';
   const hasRsgeMismatch = isSyncedFromRsge && editDeclaration?.rsgeSyncState === 'out_of_sync';
+  const hasRsgeDraft = !!editDeclaration?.rsgeSeqNum;
+  const canSubmitToRsge = rsgeTempToken && hasRsgeDraft;
 
   const handleSubmit = async (localStatus: DeclarationLocalStatus) => {
     setSaving(true);
@@ -32,6 +56,46 @@ export function DeclarationStep3({ calc, onSubmit, onBack, editDeclaration }: Pr
       setSaving(false);
     }
   };
+
+  // RS.GE submit handler — opens the confirmation modal
+  const handleOpenSubmitModal = useCallback(() => {
+    setSubmitResult(null);
+    setSubmitError(null);
+    setSubmitProgress(null);
+    setShowSubmitModal(true);
+  }, []);
+
+  // RS.GE final submit — irreversible action
+  const handleConfirmSubmit = useCallback(async () => {
+    if (!rsgeTempToken || !editDeclaration?.rsgeSeqNum) return;
+
+    setSubmitProgress('loading');
+    setSubmitError(null);
+
+    try {
+      // Convert period from "YYYY-MM" to "YYYYMM"
+      const rsgePeriod = editDeclaration.rsgeSeqNum
+        ? period.replace('-', '')
+        : '';
+
+      const result = await rsgeDraftSubmit(
+        rsgeTempToken,
+        Number(editDeclaration.rsgeSeqNum),
+        rsgePeriod,
+      );
+
+      if (result.ok) {
+        setSubmitResult(result);
+        setSubmitProgress(null);
+      } else {
+        setSubmitError(result.message || result.error || t['rsge_submit_error']);
+        setSubmitProgress(null);
+      }
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : t['rsge_submit_error']);
+      setSubmitProgress(null);
+    }
+  }, [rsgeTempToken, editDeclaration, period, t]);
 
   return (
     <div className="decl-step">
@@ -147,6 +211,145 @@ export function DeclarationStep3({ calc, onSubmit, onBack, editDeclaration }: Pr
           </Button>
         </div>
       </div>
+
+      {/* RS.GE Direct Submit Button */}
+      {canSubmitToRsge && (
+        <div className="decl-rsge-submit-section">
+          <div className="decl-rsge-submit-divider">
+            <span>{t['rsge_submit_btn']}</span>
+          </div>
+
+          {!submitResult && (
+            <button
+              type="button"
+              className="decl-rsge-submit-btn"
+              onClick={handleOpenSubmitModal}
+              disabled={!!submitProgress}
+            >
+              <Icon name="send" size={16} />
+              <span>{t['rsge_submit_btn']}</span>
+              <span className="decl-rsge-submit-badge">RS.GE #{editDeclaration?.rsgeSeqNum}</span>
+            </button>
+          )}
+
+          {/* Success result */}
+          {submitResult && submitResult.ok && (
+            <div className="decl-rsge-submit-result decl-rsge-submit-result--success">
+              <Icon name="check-circle" size={20} />
+              <div className="decl-rsge-submit-result__body">
+                <strong>{t['rsge_submit_success']}</strong>
+                {submitResult.registration_num && (
+                  <span>{t['rsge_submit_reg_num']}: {submitResult.registration_num}</span>
+                )}
+                {submitResult.submitted_at && (
+                  <span>{submitResult.submitted_at}</span>
+                )}
+                <span>₾{submitResult.tax_amount}</span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* No draft hint */}
+      {rsgeTempToken && !hasRsgeDraft && (
+        <div className="decl-rsge-submit-hint">
+          <Icon name="info" size={14} />
+          <span>{t['rsge_submit_no_draft']}</span>
+        </div>
+      )}
+
+      {/* Submit Confirmation Modal */}
+      {showSubmitModal && (
+        <div className="decl-modal-overlay" onClick={() => !submitProgress && setShowSubmitModal(false)}>
+          <div className="decl-modal decl-modal--submit" onClick={(e) => e.stopPropagation()}>
+            <div className="decl-modal__header decl-modal__header--danger">
+              <Icon name="alert-triangle" size={20} />
+              <h3>{t['rsge_submit_confirm_title']}</h3>
+            </div>
+
+            {/* Progress state */}
+            {submitProgress && (
+              <div className="decl-modal__progress">
+                <Icon name="loader" size={18} />
+                <span>{t[STEP_LABELS[submitProgress] as keyof typeof t] || t['rsge_submit_progress']}</span>
+              </div>
+            )}
+
+            {/* Error state */}
+            {submitError && (
+              <div className="decl-modal__error">
+                <Icon name="alert-circle" size={16} />
+                <span>{submitError}</span>
+              </div>
+            )}
+
+            {/* Confirmation content (only shown before submit) */}
+            {!submitProgress && !submitResult?.ok && (
+              <>
+                <p className="decl-modal__desc">{t['rsge_submit_confirm_desc']}</p>
+
+                <div className="decl-modal__summary">
+                  <div className="decl-modal__row">
+                    <span>{t['rsge_submit_confirm_period']}</span>
+                    <strong>{period}</strong>
+                  </div>
+                  <div className="decl-modal__row">
+                    <span>{t['rsge_submit_confirm_income']}</span>
+                    <strong>₾{fields.field17.toFixed(2)}</strong>
+                  </div>
+                  <div className="decl-modal__row">
+                    <span>{t['rsge_submit_confirm_ytd']}</span>
+                    <strong>₾{fields.field15.toFixed(2)}</strong>
+                  </div>
+                  <div className="decl-modal__row decl-modal__row--highlight">
+                    <span>{t['rsge_submit_confirm_tax']}</span>
+                    <strong>₾{fields.field19.toFixed(2)}</strong>
+                  </div>
+                </div>
+
+                <div className="decl-modal__disclaimer">
+                  <Icon name="shield" size={14} />
+                  <p>{t['rsge_submit_disclaimer']}</p>
+                </div>
+
+                <div className="decl-modal__actions">
+                  <Button
+                    variant="ghost"
+                    onClick={() => setShowSubmitModal(false)}
+                    disabled={!!submitProgress}
+                  >
+                    {t['rsge_submit_cancel']}
+                  </Button>
+                  <button
+                    type="button"
+                    className="decl-rsge-confirm-btn"
+                    onClick={handleConfirmSubmit}
+                    disabled={!!submitProgress}
+                  >
+                    <Icon name="send" size={14} />
+                    {t['rsge_submit_final_confirm']}
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* Success state inside modal */}
+            {submitResult?.ok && (
+              <div className="decl-modal__success">
+                <Icon name="check-circle" size={32} />
+                <h4>{t['rsge_submit_success']}</h4>
+                {submitResult.registration_num && (
+                  <p>{t['rsge_submit_reg_num']}: <strong>{submitResult.registration_num}</strong></p>
+                )}
+                <div className="decl-modal__actions">
+                  <Button onClick={() => setShowSubmitModal(false)}>OK</Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

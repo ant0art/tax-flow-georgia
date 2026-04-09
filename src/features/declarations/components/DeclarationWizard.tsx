@@ -17,9 +17,11 @@ interface DeclarationWizardProps {
   editDeclaration?: Declaration;
   /** 1-indexed row number in the Sheet (required for update) */
   editRowIndex?: number;
+  /** RS.GE temp token for draft operations (null if not connected) */
+  rsgeTempToken?: string | null;
 }
 
-export function DeclarationWizard({ onClose, editDeclaration, editRowIndex }: DeclarationWizardProps) {
+export function DeclarationWizard({ onClose, editDeclaration, editRowIndex, rsgeTempToken }: DeclarationWizardProps) {
   const t = useT();
   const [step, setStep] = useState(1);
   const calc = useDeclarationCalc();
@@ -116,7 +118,7 @@ export function DeclarationWizard({ onClose, editDeclaration, editRowIndex }: De
       <div className="decl-wizard__body">
         {step === 1 && <DeclarationStep1 calc={calc} onNext={next} existingPeriods={existingPeriods} editDeclaration={editDeclaration} />}
         {step === 2 && <DeclarationStep2 calc={calc} onNext={next} onBack={prev} />}
-        {step === 3 && <DeclarationStep3 calc={calc} onSubmit={handleSubmit} onBack={prev} editDeclaration={editDeclaration} />}
+        {step === 3 && <DeclarationStep3 calc={calc} onSubmit={handleSubmit} onBack={prev} editDeclaration={editDeclaration} rsgeTempToken={rsgeTempToken ?? null} />}
       </div>
     </div>
   );

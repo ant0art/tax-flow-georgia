@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import type { RsgeDeclaration } from '@/shared/api/rsge-client';
 import type { Declaration } from '@/entities/declaration/schemas';
 import { useDeclarations } from './useDeclarations';
@@ -7,6 +8,7 @@ import {
   periodFromRsge,
   rsgeToLocalSnapshot,
   compareAmounts,
+  rsgeStatusToLocal,
   type AmountComparison,
 } from '@/features/declarations/lib/rsge-field-mapper';
 
@@ -15,6 +17,7 @@ import {
 export interface ImportResult {
   imported: number;    // New declarations created from RS.GE
   linked: number;      // Existing local declarations linked to RS.GE
+  relinked: number;    // Stale links updated to new SEQ_NUM
   mismatched: number;  // Linked but with amount discrepancies
   skipped: number;     // Already linked, no changes needed
   errors: number;      // Failed operations
@@ -45,6 +48,7 @@ export interface UseRsgeImportReturn {
 
 export function useRsgeImport(): UseRsgeImportReturn {
   const { declarations, addDeclaration, updateDeclaration } = useDeclarations();
+  const queryClient = useQueryClient();
   const addToast = useToastStore.getState().addToast;
 
   const [importing, setImporting] = useState(false);
@@ -93,6 +97,7 @@ export function useRsgeImport(): UseRsgeImportReturn {
       const result: ImportResult = {
         imported: 0,
         linked: 0,
+        relinked: 0,
         mismatched: 0,
         skipped: 0,
         errors: 0,
@@ -126,6 +131,13 @@ export function useRsgeImport(): UseRsgeImportReturn {
             // Link existing local declaration to RS.GE
             const comparison = compareAmounts(localMatch, rsge);
             const syncState = comparison.match ? 'linked' : 'out_of_sync';
+            const isRelink = !!(localMatch.rsgeSeqNum && localMatch.rsgeSeqNum !== String(rsge.SEQ_NUM));
+
+            // Propagate RS.GE status → localStatus (e.g. draft → submitted)
+            const newLocalStatus = rsgeStatusToLocal(rsge);
+            const rsgeSubmittedAt = rsge.WARM_TAR
+              ? rsge.WARM_TAR.split(/[\sT]/)[0].split(/[./-]/).reverse().join('-')
+              : '';
 
             // Find row index (1-indexed header + 1-indexed data)
             const originalIndex = declarations.findIndex((d) => d.id === localMatch.id);
@@ -136,17 +148,25 @@ export function useRsgeImport(): UseRsgeImportReturn {
 
             const rowIndex = originalIndex + 2;
 
+            const mergedData = {
+              ...localMatch,
+              ...snapshot,
+              rsgeSyncState: syncState,
+              rsgeSyncedHash: '', // Will be set if user pushes back
+              localStatus: newLocalStatus,
+              submittedAt: localMatch.submittedAt || rsgeSubmittedAt,
+            };
+
             await updateDeclaration({
-              data: {
-                ...localMatch,
-                ...snapshot,
-                rsgeSyncState: syncState,
-                rsgeSyncedHash: '', // Will be set if user pushes back
-              },
+              data: mergedData,
               rowIndex,
             });
 
-            result.linked++;
+            if (isRelink) {
+              result.relinked++;
+            } else {
+              result.linked++;
+            }
             if (!comparison.match) {
               result.mismatched++;
             }
@@ -200,10 +220,15 @@ export function useRsgeImport(): UseRsgeImportReturn {
       setProgress(null);
       setLastResult(result);
 
+      // Force-await declarations refetch so React state is current
+      // before the caller uses the result (fixes stale "Link outdated" badges)
+      await queryClient.refetchQueries({ queryKey: ['declarations'] });
+
       // Show summary toast
       const parts: string[] = [];
       if (result.imported > 0) parts.push(`импортировано: ${result.imported}`);
       if (result.linked > 0) parts.push(`привязано: ${result.linked}`);
+      if (result.relinked > 0) parts.push(`перепривязано: ${result.relinked}`);
       if (result.mismatched > 0) parts.push(`расхождений: ${result.mismatched}`);
       if (result.skipped > 0) parts.push(`пропущено: ${result.skipped}`);
       if (result.errors > 0) parts.push(`ошибок: ${result.errors}`);
@@ -216,7 +241,7 @@ export function useRsgeImport(): UseRsgeImportReturn {
 
       return result;
     },
-    [declarations, addDeclaration, updateDeclaration, addToast],
+    [declarations, addDeclaration, updateDeclaration, addToast, queryClient],
   );
 
   return {

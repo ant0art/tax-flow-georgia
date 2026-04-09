@@ -94,11 +94,34 @@ export function useDeclarations() {
       });
       await getClient().updateRow('declarations', rowIndex, row);
     },
-    onSuccess: () => {
+    onMutate: async ({ data, rowIndex }) => {
+      // Cancel in-flight refetches so they don't overwrite optimistic update
+      await qc.cancelQueries({ queryKey: ['declarations'] });
+      const prev = qc.getQueryData<Declaration[]>(['declarations']);
+      if (prev) {
+        const idx = rowIndex - 2; // Convert back to 0-indexed array position
+        if (idx >= 0 && idx < prev.length) {
+          const updated = [...prev];
+          updated[idx] = { ...data, updatedAt: new Date().toISOString().split('T')[0] };
+          qc.setQueryData(['declarations'], updated);
+        }
+      }
+      return { prev };
+    },
+    onError: (_err, _vars, context) => {
+      // Rollback optimistic update on error
+      if (context?.prev) {
+        qc.setQueryData(['declarations'], context.prev);
+      }
+      addToast('Ошибка при обновлении декларации', 'error');
+    },
+    onSettled: () => {
+      // Always refetch from source of truth after mutation completes
       qc.invalidateQueries({ queryKey: ['declarations'] });
+    },
+    onSuccess: () => {
       addToast('Декларация обновлена', 'success');
     },
-    onError: () => addToast('Ошибка при обновлении декларации', 'error'),
   });
 
   const deleteDeclaration = useMutation({
