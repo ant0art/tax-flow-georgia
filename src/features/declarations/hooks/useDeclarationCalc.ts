@@ -95,7 +95,7 @@ export function useDeclarationCalc(): DeclarationCalcState {
   /** Initialize from an existing declaration for EDIT mode */
   const initFromDeclaration = useCallback((decl: Declaration) => {
     setIsEditMode(true);
-    setPeriod(decl.period);
+    setPeriod(decl.period || prevMonth());
     setDeduction(decl.field18 as Deduction);
     setSubmittedAt(decl.submittedAt);
     setNotes(decl.notes);

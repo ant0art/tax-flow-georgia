@@ -26,6 +26,7 @@ const MONTH_KEYS = [
 ] as const;
 
 function formatPeriodLabel(period: string, t: Record<string, string>): string {
+  if (!period || !period.includes('-')) return period || '—';
   const [yr, mm] = period.split('-');
   const idx = parseInt(mm, 10) - 1;
   const monthLabel = t[MONTH_KEYS[idx]] || mm;
@@ -231,7 +232,12 @@ export function DeclarationsPage() {
 
     // Sort by period
     result.sort((a, b) => {
-      const cmp = a.period.localeCompare(b.period);
+      const pa = a.period || '';
+      const pb = b.period || '';
+      // Empty periods always float to top
+      if (!pa && pb) return -1;
+      if (pa && !pb) return 1;
+      const cmp = pa.localeCompare(pb);
       return sortOrder === 'desc' ? -cmp : cmp;
     });
 

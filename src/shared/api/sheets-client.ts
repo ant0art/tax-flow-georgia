@@ -38,25 +38,26 @@ export class SheetsClient {
   /** Read all rows from a sheet */
   async getSheet(name: string): Promise<string[][]> {
     const res = await fetch(
-      `${SHEETS_API}/${this.spreadsheetId}/values/${name}`,
+      `${SHEETS_API}/${this.spreadsheetId}/values/${name}?valueRenderOption=UNFORMATTED_VALUE`,
       { headers: this.headers }
     );
     if (res.status === 401) throw new AuthError();
     if (!res.ok) throw await sheetsError('getSheet', res);
     const data = await res.json();
-    return data.values ?? [];
+    // UNFORMATTED_VALUE may return numbers for date-like cells → stringify all
+    return (data.values ?? []).map((row: unknown[]) => row.map((v) => String(v ?? '')));
   }
 
   /** Append a row to a sheet */
   async appendRow(sheet: string, row: unknown[]): Promise<void> {
-    const res = await fetch(
-      `${SHEETS_API}/${this.spreadsheetId}/values/${sheet}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
-      {
-        method: 'POST',
-        headers: this.headers,
-        body: JSON.stringify({ values: [row] }),
-      }
-    );
+    // IMPORTANT: Specify explicit A1 range to prevent Google Sheets from
+    // auto-detecting the wrong "table" region (e.g. T2:X13 instead of A1:X).
+    const url = `${SHEETS_API}/${this.spreadsheetId}/values/${sheet}!A1:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: this.headers,
+      body: JSON.stringify({ values: [row] }),
+    });
     if (res.status === 401) throw new AuthError();
     if (!res.ok) throw await sheetsError('appendRow', res);
   }
@@ -116,7 +117,7 @@ export class SheetsClient {
   async batchRead(ranges: string[]): Promise<string[][][]> {
     const params = ranges.map((r) => `ranges=${encodeURIComponent(r)}`).join('&');
     const res = await fetch(
-      `${SHEETS_API}/${this.spreadsheetId}/values:batchGet?${params}`,
+      `${SHEETS_API}/${this.spreadsheetId}/values:batchGet?${params}&valueRenderOption=UNFORMATTED_VALUE`,
       { headers: this.headers }
     );
     if (res.status === 401) throw new AuthError();

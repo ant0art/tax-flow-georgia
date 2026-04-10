@@ -28,6 +28,49 @@ const FIELD_DEFAULTS: Partial<Record<keyof Declaration, string>> = {
   rsgeImportedAt: '',
 };
 
+/**
+ * Normalize period from various Google Sheets representations back to YYYY-MM.
+ *
+ * Google Sheets may auto-convert "2026-04" to:
+ *   - A serial date number (e.g. 46143)
+ *   - A formatted date string ("4/1/2026", "Apr 2026", "2026-04-01", etc.)
+ *   - The original "2026-04" (if column format is plain text)
+ */
+function normalizePeriod(raw: string): string {
+  if (!raw) return '';
+
+  // Already valid YYYY-MM
+  if (/^\d{4}-\d{2}$/.test(raw)) return raw;
+
+  // Serial date number (Google Sheets epoch = 1899-12-30)
+  const num = Number(raw);
+  if (!isNaN(num) && num > 40000 && num < 60000) {
+    const epoch = new Date(1899, 11, 30);
+    epoch.setDate(epoch.getDate() + num);
+    const y = epoch.getFullYear();
+    const m = String(epoch.getMonth() + 1).padStart(2, '0');
+    return `${y}-${m}`;
+  }
+
+  // ISO-like "2026-04-01" or "2026-04-01T..."
+  const isoMatch = raw.match(/^(\d{4})-(\d{2})/);
+  if (isoMatch) return `${isoMatch[1]}-${isoMatch[2]}`;
+
+  // US format "4/1/2026" or "04/01/2026"
+  const usMatch = raw.match(/^(\d{1,2})\/\d{1,2}\/(\d{4})$/);
+  if (usMatch) return `${usMatch[2]}-${String(usMatch[1]).padStart(2, '0')}`;
+
+  // "Apr 2026" or "April 2026"
+  const monthNames = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  const nameMatch = raw.match(/^(\w+)\s+(\d{4})$/i);
+  if (nameMatch) {
+    const idx = monthNames.findIndex((m) => nameMatch[1].toLowerCase().startsWith(m));
+    if (idx >= 0) return `${nameMatch[2]}-${String(idx + 1).padStart(2, '0')}`;
+  }
+
+  return raw; // Fallback — return as-is
+}
+
 function rowToDeclaration(row: string[]): Declaration {
   const result: Record<string, unknown> = {};
   DECLARATION_FIELDS.forEach((f, i) => {
@@ -38,6 +81,10 @@ function rowToDeclaration(row: string[]): Declaration {
       result[f] = v;
     }
   });
+
+  // Fix period: Google Sheets may auto-format "2026-04" as a date.
+  // Recover YYYY-MM from various representations.
+  result.period = normalizePeriod(String(result.period ?? ''));
 
   // Backward compat: old rows have 'status' in position 8 (index 8).
   // The field is now called 'localStatus' in the schema, but the Sheet
@@ -68,14 +115,27 @@ export function useDeclarations() {
     staleTime: 5 * 60 * 1000,
   });
 
+/**
+ * Fields that look like dates (YYYY-MM) and must be prefixed with `'` (apostrophe)
+ * when using USER_ENTERED to prevent Google Sheets from auto-formatting them
+ * as Date type. The apostrophe is NOT stored — it's a Sheets hint for "plain text".
+ */
+const TEXT_FORCE_FIELDS: ReadonlySet<keyof Declaration> = new Set(['period']);
+
+/** Serialize a Declaration into a row array for Google Sheets */
+function serializeRow(data: Declaration, isNew: boolean): string[] {
+  const now = new Date().toISOString().split('T')[0];
+  return DECLARATION_FIELDS.map((f) => {
+    if (isNew && (f === 'createdAt' || f === 'updatedAt')) return now;
+    if (!isNew && f === 'updatedAt') return now;
+    if (f === 'rsgeSyncState' && !data[f]) return 'unlinked';
+    return String(data[f] ?? '');
+  });
+}
+
   const addDeclaration = useMutation({
     mutationFn: async (data: Declaration) => {
-      const now = new Date().toISOString().split('T')[0];
-      const row = DECLARATION_FIELDS.map((f) => {
-        if (f === 'createdAt' || f === 'updatedAt') return now;
-        if (f === 'rsgeSyncState' && !data[f]) return 'unlinked';
-        return String(data[f] ?? '');
-      });
+      const row = serializeRow(data, true);
       await getClient().appendRow('declarations', row);
     },
     onSuccess: () => {
@@ -87,11 +147,7 @@ export function useDeclarations() {
 
   const updateDeclaration = useMutation({
     mutationFn: async ({ data, rowIndex }: { data: Declaration; rowIndex: number }) => {
-      const now = new Date().toISOString().split('T')[0];
-      const row = DECLARATION_FIELDS.map((f) => {
-        if (f === 'updatedAt') return now;
-        return String(data[f] ?? '');
-      });
+      const row = serializeRow(data, false);
       await getClient().updateRow('declarations', rowIndex, row);
     },
     onMutate: async ({ data, rowIndex }) => {

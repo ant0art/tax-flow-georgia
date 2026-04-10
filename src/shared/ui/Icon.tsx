@@ -53,7 +53,9 @@ export type IconName =
   | 'credit-card'
   | 'upload-cloud'
   | 'refresh-cw'
-  | 'link-2';
+  | 'link-2'
+  | 'chevron-up'
+  | 'arrow-left';
 
 const PATHS: Record<IconName, ReactElement> = {
   'chart-bar': (
@@ -270,6 +272,9 @@ const PATHS: Record<IconName, ReactElement> = {
   'chevron-down': (
     <polyline points="6 9 12 15 18 9" />
   ),
+  'chevron-up': (
+    <polyline points="6 15 12 9 18 15" />
+  ),
   'trending-up': (
     <>
       <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
@@ -370,6 +375,12 @@ const PATHS: Record<IconName, ReactElement> = {
     <>
       <path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3" />
       <line x1="8" y1="12" x2="16" y2="12" />
+    </>
+  ),
+  'arrow-left': (
+    <>
+      <line x1="19" y1="12" x2="5" y2="12" />
+      <polyline points="12 19 5 12 12 5" />
     </>
   ),
 };

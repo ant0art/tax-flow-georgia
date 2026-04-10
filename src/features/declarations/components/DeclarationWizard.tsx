@@ -44,7 +44,7 @@ export function DeclarationWizard({ onClose, editDeclaration, editRowIndex, rsge
     .filter((d) => !editDeclaration || d.id !== editDeclaration.id)
     .map((d) => d.period);
 
-  const handleSubmit = useCallback(async (notes: string, localStatus: DeclarationLocalStatus) => {
+  const handleSubmit = useCallback(async (notes: string, localStatus: DeclarationLocalStatus, rsgeUpdates?: Partial<Declaration>) => {
     const today = new Date().toISOString().split('T')[0];
 
     // Collect selected transaction IDs for persistence
@@ -62,7 +62,7 @@ export function DeclarationWizard({ onClose, editDeclaration, editRowIndex, rsge
       field19: calc.fields.field19,
       field21: calc.fields.field21,
       localStatus,
-      submittedAt: calc.submittedAt,
+      submittedAt: (localStatus === 'submitted' && !calc.submittedAt) ? today : calc.submittedAt,
       paidAt: editDeclaration?.paidAt ?? '',
       notes,
       createdAt: editDeclaration?.createdAt ?? today,
@@ -77,6 +77,8 @@ export function DeclarationWizard({ onClose, editDeclaration, editRowIndex, rsge
       rsgeCumulativeIncome: editDeclaration?.rsgeCumulativeIncome ?? 0,
       rsgeStatusText: editDeclaration?.rsgeStatusText ?? '',
       rsgeImportedAt: editDeclaration?.rsgeImportedAt ?? '',
+      // Merge RS.GE submit results (if any) — these override defaults above
+      ...rsgeUpdates,
     };
 
     if (editDeclaration && editRowIndex) {
